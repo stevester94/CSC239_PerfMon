@@ -35,7 +35,6 @@ def get_interrupts_serviced():
     
     line = get_first_matching_line(f, "intr")
     split_line = line.rstrip().split(" ")
-    print(split_line)
 
     f.close()
     return int(split_line[1])
@@ -59,7 +58,6 @@ def get_meminfo():
     total = get_first_matching_line(f, "MemTotal")
     free  = get_first_matching_line(f, "MemFree")
 
-    print total
     total = int(re.search(r"[0-9]+", total).group(0))
     free  = int(re.search(r"[0-9]+", free).group(0))
     used_percent = float(total - free)/total

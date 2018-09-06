@@ -24,7 +24,7 @@ def parse_address_and_port(input):
 
     return (address, port)
 
-def get_overall_metrics():
+def get_net_metrics():
     f = open("/proc/net/snmp")
     keys = ("ip_forwarding", "ip_in_receive", "ip_out_request", 
             "tcp_active_opens", "tcp_current_established", "tcp_in_segs", "tcp_out_segs", 
@@ -62,14 +62,14 @@ def get_overall_metrics():
 
 # There's gonna be garbage, oh well
 def get_tcp_info():
-    keys = ("sl", "local_address", "rem_address", "st", "tx_queue:rx_queue", 
+    keys = ("username", "program", "sl", "local_address", "rem_address", "st", "tx_queue:rx_queue", 
             "tr:tm->when", "retrnsmt", "uid", "timeout", "inode")
 
     f = open("/proc/net/tcp")
 
     lines = search_all_lines_with_regex(f, r"\s*[0-9]+:")
 
-    ugh = []
+    connections = []
     for index, l in enumerate(lines):
         only_data = re.search(r"\s*[0-9]+:\s*(.*)", l).group(1)
         separated_data = re.findall("\s*(\S*)\s*", only_data)
@@ -86,15 +86,22 @@ def get_tcp_info():
         (host,port) = parse_address_and_port(separated_data[2])
         separated_data[2] = host+":"+port
 
+        separated_data = ["USERNAME", "PROGRAM"] + separated_data 
+
+        d = dict(zip(keys, separated_data))
+        connections.append(d)
+
+    return connections
+
 def get_udp_info():
-    keys = ("sl", "local_address", "rem_address", "st", "tx_queue:rx_queue", 
+    keys = ("username", "program", "sl", "local_address", "rem_address", "st", "tx_queue:rx_queue", 
             "tr:tm->when", "retrnsmt", "uid", "timeout", "inode", "ref", "pointer", "drops")
 
     f = open("/proc/net/udp")
 
     lines = search_all_lines_with_regex(f, r"\s*[0-9]+:")
 
-    ugh = []
+    connections = []
     for index, l in enumerate(lines):
         only_data = re.search(r"\s*[0-9]+:\s*(.*)", l).group(1)
         separated_data = re.findall("\s*(\S*)\s*", only_data)
@@ -111,11 +118,12 @@ def get_udp_info():
         (host,port) = parse_address_and_port(separated_data[2])
         separated_data[2] = host+":"+port
 
-        if len(separated_data) != len(keys):
-            raise ValueException
+        separated_data = ["USERNAME", "PROGRAM"] + separated_data 
 
-        print len(separated_data)
-        
+        d = dict(zip(keys, separated_data))
+        connections.append(d)
+
+    return connections
 
 
 
