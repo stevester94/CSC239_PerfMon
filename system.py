@@ -16,6 +16,11 @@ def get_cpu_utilization():
         for e in range(1, len(split_line)):
             split_line[e] = int(split_line[e])
 
+        if len(split_line) != len(keys):
+            print len(split_line)
+            print len(keys)
+            raise ValueException
+
         d = dict(zip(keys, split_line))
 
         cpus.append(d)
@@ -57,6 +62,11 @@ def get_meminfo():
     free  = int(re.search(r"[0-9]+", free).group(0))
     used_percent = float(total - free)/total
 
+    if len((free,total,used_percent)) != len(keys):
+        print len(split_line)
+        print len(keys)
+        raise ValueException
+
     d = dict(zip(keys, (free,total,used_percent)))
     
     f.close()
@@ -93,3 +103,7 @@ def get_process_metrics(pid):
     
 if __name__ == "__main__":
     print get_process_metrics("self")
+    print get_meminfo()
+    print get_context_switches()
+    print get_interrupts_serviced()
+    print get_cpu_utilization()

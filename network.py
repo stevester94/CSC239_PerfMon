@@ -49,10 +49,18 @@ def get_overall_metrics():
     udp_stats = do_the_thing("Udp:", (0,3))
 
     stats = ip_stats + tcp_stats + udp_stats
+    d = dict(zip(keys, stats))
 
-    return dict(zip(keys, stats))
+
+    if len(d) != len(keys):
+        print len(d)
+        print len(keys)
+        raise ValueException
+
+    return d
 
 
+# There's gonna be garbage, oh well
 def get_tcp_info():
     keys = ("sl", "local_address", "rem_address", "st", "tx_queue:rx_queue", 
             "tr:tm->when", "retrnsmt", "uid", "timeout", "inode")
@@ -77,10 +85,6 @@ def get_tcp_info():
 
         (host,port) = parse_address_and_port(separated_data[2])
         separated_data[2] = host+":"+port
-
-        if len(separated_data) != len(keys):
-            raise ValueException
-
 
 def get_udp_info():
     keys = ("sl", "local_address", "rem_address", "st", "tx_queue:rx_queue", 
@@ -118,4 +122,5 @@ def get_udp_info():
 
 if __name__ == "__main__":
     print get_udp_info()
-
+    print get_tcp_info()
+    print get_overall_metrics()
