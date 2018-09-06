@@ -85,10 +85,10 @@ def get_tcp_info():
 
         (host,port) = parse_address_and_port(separated_data[2])
         separated_data[2] = host+":"+port
-
         separated_data = ["USERNAME", "PROGRAM"] + separated_data 
 
         d = dict(zip(keys, separated_data))
+        d["username"] = get_username(d["uid"])
         connections.append(d)
 
     return connections
