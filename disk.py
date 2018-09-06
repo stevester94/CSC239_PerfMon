@@ -8,10 +8,13 @@ def get_disk_reads():
             "current_IO", "time_doing_IO", "weighted_time_doing_IO")
     f = file("/proc/diskstats")
 
-    lines = search_all_lines_with_regex(f, "sd[a-z][0-9]*")
     disks = []
-    for line in lines:
-        match = re.search("(sd[a-z][0-9]*) (.*)", line)
+    for line in f:
+        match = re.search(r"\s*[0-9]+\s*[0-9]+\s*(\S*) (.*)", line)
+
+        if "loop" in match.group(1):
+            continue
+
         name = match.group(1)
         stats = [int(s) for s in match.group(2).split(" ")]
 

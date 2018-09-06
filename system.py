@@ -3,7 +3,9 @@ import re
 from utils import *
 
 def get_cpu_utilization():
-    keys = ("cpu_name", "user_mode_ms", "nice_mode_ms", "system_mode_ms", "idle_task_ms", "iowait", "irq", "softirq", "steal", "guest")
+    keys = ("cpu_name", "user_mode_ms", "nice_mode_ms", "system_mode_ms", "idle_task_ms", 
+            "iowait", "irq", "softirq", "steal", "guest", "guest_nice")
+
     f = open("/proc/stat", "r")
     cpus = []
  
