@@ -25,7 +25,6 @@ def search_all_lines_with_regex(f, regex):
 
     for line in f:
         match = re.search(regex, line)
-        print match
         if match:
             lines.append(line)
     f.seek(0)

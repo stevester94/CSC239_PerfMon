@@ -2,6 +2,28 @@
 import re
 from utils import *
 
+import struct
+import socket
+
+# Thanks stackoverflow!
+def translate_address_to_ipv4_string(input):
+    addr_long = int(input, 16)
+    hex(addr_long)
+    struct.pack("<L", addr_long)
+    return socket.inet_ntoa(struct.pack("<L", addr_long))
+
+def parse_address_and_port(input):
+    (address, port) = re.match(r"(.*):(.*)", input).groups()
+    address = translate_address_to_ipv4_string(address)
+    port = str(int(port, 16))
+
+    try:
+        address = socket.gethostbyaddr(address)[0]
+    except:
+        pass
+
+    return (address, port)
+
 def get_overall_metrics():
     f = open("/proc/net/snmp")
     keys = ("ip_forwarding", "ip_in_receive", "ip_out_request", 
@@ -31,8 +53,69 @@ def get_overall_metrics():
     return dict(zip(keys, stats))
 
 
+def get_tcp_info():
+    keys = ("sl", "local_address", "rem_address", "st", "tx_queue:rx_queue", 
+            "tr:tm->when", "retrnsmt", "uid", "timeout", "inode")
+
+    f = open("/proc/net/tcp")
+
+    lines = search_all_lines_with_regex(f, r"\s*[0-9]+:")
+
+    ugh = []
+    for index, l in enumerate(lines):
+        only_data = re.search(r"\s*[0-9]+:\s*(.*)", l).group(1)
+        separated_data = re.findall("\s*(\S*)\s*", only_data)
+        try:
+            separated_data.remove('')
+        except e:
+            pass
+        separated_data = [index,] + separated_data
+
+        # Translate raw hex addresses and ports into readable
+        (host,port) = parse_address_and_port(separated_data[1])
+        separated_data[1] = host+":"+port
+
+        (host,port) = parse_address_and_port(separated_data[2])
+        separated_data[2] = host+":"+port
+
+        if len(separated_data) != len(keys):
+            raise ValueException
+
+
+def get_udp_info():
+    keys = ("sl", "local_address", "rem_address", "st", "tx_queue:rx_queue", 
+            "tr:tm->when", "retrnsmt", "uid", "timeout", "inode", "ref", "pointer", "drops")
+
+    f = open("/proc/net/udp")
+
+    lines = search_all_lines_with_regex(f, r"\s*[0-9]+:")
+
+    ugh = []
+    for index, l in enumerate(lines):
+        only_data = re.search(r"\s*[0-9]+:\s*(.*)", l).group(1)
+        separated_data = re.findall("\s*(\S*)\s*", only_data)
+        try:
+            separated_data.remove('')
+        except e:
+            pass
+        separated_data = [index,] + separated_data
+
+        # Translate raw hex addresses and ports into readable
+        (host,port) = parse_address_and_port(separated_data[1])
+        separated_data[1] = host+":"+port
+
+        (host,port) = parse_address_and_port(separated_data[2])
+        separated_data[2] = host+":"+port
+
+        if len(separated_data) != len(keys):
+            raise ValueException
+
+        print len(separated_data)
+        
+
+
 
 
 if __name__ == "__main__":
-    print get_overall_metrics()
+    print get_udp_info()
 
