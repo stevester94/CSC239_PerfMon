@@ -1,3 +1,5 @@
+#! /usr/bin/python
+
 from network import *
 from system import *
 from disk import *

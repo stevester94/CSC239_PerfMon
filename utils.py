@@ -3,6 +3,9 @@
 import os
 import re
 import pwd
+import sys
+
+CLOCK_PER_SECOND = 100
 
 # Just the first line that starts with <starting_match>
 def get_first_matching_line(f, starting_match):
@@ -32,40 +35,22 @@ def search_all_lines_with_regex(f, regex):
     f.seek(0)
     return lines
 
-# return lis of (pid, path)
-def get_all_process_dirs():
-    thedir = "/proc/"
-    dirs = [name for name in os.listdir(thedir) if os.path.isdir(os.path.join(thedir, name)) ]
 
-    procs = []
-    for name in dirs:
-        if re.match("([0-9]+)", name):
-            procs.append((name,thedir+name))
 
-    return procs
 
-def get_proc_socket_inodes(proc_path):
-    path = proc_path+"/fd/"
 
-    inodes = []
-    for desc in os.listdir(path):
-        target = os.readlink(path+desc)
-        if "socket" in target:
-            inodes.append(re.search(r"([0-9]+)", target).group(1))
-        
-    return inodes
-
+# In actuality this is more like a map from pid to inodes that it contains
 def build_inode_to_pid_map():
-    proc_dirs =  get_all_process_dirs()
+    pids =  get_all_pids()
 
     procs = []
 
-    for pid, path in proc_dirs:
-        print pid
-        inodes = get_proc_socket_inodes(path)
-        print "    " + inodes
+    for pid in pids:
+        # print pid
+        inodes = get_proc_socket_inodes(pid)
+        # print "    " + str(inodes)
 
-        procs.append((pid,path,inodes))
+        procs.append((pid,inodes))
 
     return procs
 
@@ -77,6 +62,18 @@ def get_pids_from_inode(inode, the_map):
         if inode in p[2]:
             pids.append(p[0])
 
+    print "pids: " + str(pids)
+    return pids
+
 # uid as string
 def get_username(uid):
     return pwd.getpwuid(int(uid))[0]
+
+
+def get_uptime_clocks():
+    keys = ("uptime", "idletime")
+    f = open("/proc/uptime")
+
+    line = f.read()
+    return dict(zip(keys, [float(f)*CLOCK_PER_SECOND for f in re.search("(.*?) (.*)", line).groups()]))
+

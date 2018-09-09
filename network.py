@@ -89,7 +89,11 @@ def get_tcp_info():
 
         d = dict(zip(keys, separated_data))
         d["username"] = get_username(d["uid"])
+        associated_pids = get_pids_from_inode(d["inode"], build_inode_to_pid_map())
+        d["pids"] = associated_pids
+
         connections.append(d)
+
 
     return connections
 
@@ -121,6 +125,9 @@ def get_udp_info():
         separated_data = ["USERNAME", "PROGRAM"] + separated_data 
 
         d = dict(zip(keys, separated_data))
+        d["username"] = get_username(d["uid"])
+        associated_pids = get_pids_from_inode(d["inode"], build_inode_to_pid_map())
+        d["pids"] = associated_pids
         connections.append(d)
 
     return connections
