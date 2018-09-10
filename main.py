@@ -97,12 +97,13 @@ from proc import *
 if __name__ == "__main__":
     pp = pprint.PrettyPrinter(indent=4)
 
+    # top mode
     prev_cpus = None
-    prev_pid  = None
+    prev_procs  = None
     while True:
         cpus = get_cpu_utilization()
-        proc = get_proc_complete("4174")
-        # pp.pprint(cpus)
+        procs = get_all_complete_procs()
+        pp.pprint(procs)
 
         if prev_cpus != None:
             print calc_percent_time_busy(prev_cpus, cpus)

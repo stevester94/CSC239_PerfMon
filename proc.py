@@ -109,6 +109,24 @@ def calc_proc_utilization_interval_percent(prev, current):
 
     return busy_delta/total_delta
 
+# Fill in interval_utilization for current_procs
+def populate_all_proc_utilization_interval_percent(prev_procs, current_procs):
+    for p,c in zip(prev_procs, current_procs):
+        c["interval_utilization"] = calc_proc_utilization_interval_percent(p,c)
+
+    for c in current_procs:
+        assert "interval_utilization" in c
+
+def get_proc_highlights(proc_dict):
+    highlights_keys = ("username", "comm", "virtual_mem_bytes", "physical_mem_pages", "interval_utilization")
+
+    highlights = {}
+    for h in highlights:
+        if h in proc_dict:
+            highlights[h] = proc_dict[h]
+
+    return highlights
+
 # return lis of pids
 def get_all_pids():
     thedir = "/proc/"
@@ -118,6 +136,13 @@ def get_all_pids():
     for pid in dirs:
         if re.match("([0-9]+)", pid):
             procs.append(pid)
+
+    return procs
+
+def get_all_complete_procs():
+    procs = []
+    for pid in get_all_pids():
+        procs.append(get_proc_complete(pid))
 
     return procs
 
