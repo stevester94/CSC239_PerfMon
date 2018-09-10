@@ -34,36 +34,7 @@ def search_all_lines_with_regex(f, regex):
             lines.append(line)
     f.seek(0)
     return lines
-
-
-
-
-
-# In actuality this is more like a map from pid to inodes that it contains
-def build_inode_to_pid_map():
-    pids =  get_all_pids()
-
-    procs = []
-
-    for pid in pids:
-        # print pid
-        inodes = get_proc_socket_inodes(pid)
-        # print "    " + str(inodes)
-
-        procs.append((pid,inodes))
-
-    return procs
-
-
-def get_pids_from_inode(inode, the_map):
-    pids = []
-
-    for p in the_map:
-        if inode in p[2]:
-            pids.append(p[0])
-
-    print "pids: " + str(pids)
-    return pids
+    
 
 # uid as string
 def get_username(uid):

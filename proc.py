@@ -22,9 +22,36 @@ def get_proc_socket_inodes(pid):
         
     return inodes
 
+# In actuality this is more like a map from pid to inodes that it contains
+def build_inode_to_pid_map():
+    pids =  get_all_pids()
+
+    procs = []
+
+    for pid in pids:
+        # print pid
+        inodes = get_proc_socket_inodes(pid)
+        # print "    " + str(inodes)
+
+        procs.append((pid,inodes))
+
+    return procs
+
+
+def get_pids_from_inode(inode, the_map):
+    pids = []
+
+    for p in the_map:
+        if inode in p[2]:
+            pids.append(p[0])
+
+    print "pids: " + str(pids)
+    return pids
+
 
 def get_proc_stat(pid):
     keys = ("pid", "comm", "state", "ppid", "pgrp", "session", "tty_nr", "tpgid", "flags", "minflt", "cminflt", "majflt", "cmajflt", "utime", "stime", "cutime", "cstime", "priority", "nice", "num_threads", "itrealvalue", "starttime", "vsize", "rss", "rsslim", "startcode", "endcode", "startstack", "kstkesp", "kstkeip", "signal", "blocked", "sigignore", "sigcatch", "wchan", "nswap", "cnswap", "exit_signal", "processor", "rt_priority", "policy", "delayacct_blkio_ticks", "guest_time", "cguest_time", "start_data", "end_data", "start_brk", "arg_start", "arg_end", "env_start", "env_end", "exit_code")
+
     path = "/proc/" + pid + "/stat"
 
     f = open(path, "r")
@@ -40,16 +67,47 @@ def get_proc_stat(pid):
 
     return dict(zip(keys, final))
 
-def calc_proc_utilization(proc_dict):
+def get_proc_complete(pid):
+    custom_keys = ("username", "utilization", "socket_inodes", "virtual_mem_bytes", "physical_mem_pages", "running_time") # socket_inodes being an array
+
+    proc_stat = get_proc_stat(pid)
+    running_time = get_uptime_clocks()["uptime"] - float(proc_stat["starttime"])
+    proc_stat["running_time"] = running_time
+    username = get_username(get_uid_from_pid(proc_stat["pid"]))
+    utilization = calc_proc_utilization_overall_percent(proc_stat)
+    socket_inodes = get_proc_socket_inodes(pid)
+
+
+    proc_stat["username"] = username
+    proc_stat["utilization"] = utilization
+    proc_stat["socket_inodes"] = socket_inodes
+    proc_stat['virtual_mem_bytes'] = proc_stat["vsize"]
+    proc_stat['physical_mem_pages'] = proc_stat["rss"]
+
+
+    return proc_stat
+
+
+
+
+def calc_proc_utilization_overall_percent(proc_dict):
     user_time = proc_dict["utime"]
     system_time = proc_dict["stime"]
-    total_time = get_uptime_clocks()["uptime"] - float(proc_dict["starttime"])
-
-    print user_time
-    print system_time
-    print total_time
+    total_time = proc_dict["running_time"]
 
     return float(user_time + system_time) / total_time
+
+def calc_proc_utilization_interval_percent(prev, current):
+    def _calc_time_busy(d):
+        return d["utime"] + d["stime"]
+
+    def _calc_total_time(d):
+        return d["running_time"]
+
+    busy_delta = _calc_time_busy(current) - _calc_time_busy(prev)
+    total_delta = _calc_total_time(current) - _calc_time_busy(prev)
+
+    return busy_delta/total_delta
 
 # return lis of pids
 def get_all_pids():
@@ -63,11 +121,21 @@ def get_all_pids():
 
     return procs
 
+def get_uid_from_pid(pid):
+    path = "/proc/" + pid + "/status"
+    f = open(path)
+
+    line = get_first_matching_line(f, "Uid")
+    return re.search("\d+", line).group(0)
+
 if __name__ == "__main__":
     print get_all_pids()
     for pid in get_all_pids():
-        proc_stat = get_proc_stat(pid)
+        proc_stat = get_proc_complete(pid)
+        print proc_stat
+        break
         print proc_stat["comm"]
-        print "    " + str(calc_proc_utilization(proc_stat))
-        print "    " + str(get_proc_socket_inodes(pid))
+        print "    utilization: " + str(proc_stat["utilization"])
+        print "    socket inodes: " + str(proc_stat["socket_inodes"])
+        print "    username: " + str(proc_stat["username"])
         print "===================================================================="

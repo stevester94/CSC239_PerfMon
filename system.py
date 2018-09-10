@@ -15,8 +15,9 @@ def get_cpu_utilization():
             continue
         if split_line[0] == 'cpu':
             split_line.remove('')
-        for e in range(1, len(split_line)):
-            split_line[e] = int(split_line[e])
+
+        stats = [int(e) for e in split_line[1:]]
+        split_line = [split_line[0],] + stats
 
         if len(split_line) != len(keys):
             print len(split_line)
@@ -25,10 +26,36 @@ def get_cpu_utilization():
 
         d = dict(zip(keys, split_line))
 
+        # These are originally in cycle (1/100th of a sec), * 10 gives ms
+        d["user_mode_ms"] = d["user_mode_ms"]*10
+        d["nice_mode_ms"] = d["nice_mode_ms"]*10
+        d["system_mode_ms"] = d["system_mode_ms"]*10
+        d["idle_task_ms"] = d["idle_task_ms"]*10
+
         cpus.append(d)
 
     f.close()
     return cpus
+
+# Return list of (cpu_name, % time busy)
+def calc_percent_time_busy(previous, current):
+    together = zip(previous, current)
+
+    def _calc_time_busy(d):
+        return d["user_mode_ms"] + d["system_mode_ms"]
+
+    def _calc_total_time(d):
+        return d["user_mode_ms"] + d["system_mode_ms"] + d["idle_task_ms"]
+
+    times = []
+    for p,c in together:
+        assert p["cpu_name"] == c["cpu_name"]
+        time_busy = _calc_time_busy(c) - _calc_time_busy(p)
+        time_total = _calc_total_time(c) - _calc_total_time(p)
+        print str(time_busy) + "  " + str(time_total)
+        times.append((p["cpu_name"], float(time_busy)/time_total))
+
+    return times
 
 def get_interrupts_serviced():
     f = open("/proc/stat", "r")
@@ -70,34 +97,6 @@ def get_meminfo():
     d = dict(zip(keys, (free,total,used_percent)))
     
     f.close()
-    return d
-
-def get_process_metrics(pid):
-    # Still unsure on overall_usage
-    # believe the metrics reported by user_mode and kernel mode are returned as ticks
-    keys = ("user_mode_ms", "kernel_mode_ms", "overall_usage", "virtual_memory_kb", "physical_memory_kb", "username", "program_name")
-    
-    
-    f = open("/proc/"+pid+"/stat")
-    
-    
-    split_line = f.read().rstrip().split(" ")
-    d = {}
-    d["user_mode_ms"] = int(split_line[13]) # This needs to be multiplied by ticks
-    d["kernel_mode_ms"] = int(split_line[14]) # Again, this is ticks, need to adjust
-    d["overall_usage"] = d["user_mode_ms"] + d["kernel_mode_ms"] # This can't be right...
-    d["virtual_memory_kb"] = int(split_line[22])/1024
-    
-    num_pages = int(split_line[23]) # We'll need to get the page size as well
-    d["physical_memory_kb"] = num_pages # Stick with this for now
-    d["program_name"] = split_line[1][1:-1]
-    f.close()
-
-    f = open("/proc/"+pid+"/status")
-    line = get_first_matching_line(f, "Uid")
-    match = re.search(r"Uid:\s*[0-9]*\s*([0-9]*)", line) # Second group is the "Effective uid"
-    d["username"] = match.group(1) # The UID, need to translate this to username
-    
     return d
     
     
