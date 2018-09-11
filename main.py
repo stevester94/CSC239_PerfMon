@@ -97,9 +97,14 @@ def top_demo():
                 print "%s: %s%% busy" % cpu
             print 
 
+            print "Memory Usage"
+            print " ".join([ key+": "+str(val) for (key,val) in get_meminfo().iteritems()])
+            print
+
             print "Top 10 processes by utilization:"
+            print " ".join(("username", "comm", "virtual_mem_bytes", "physical_mem_pages", "interval_utilization"))
             for (pid, _) in sort_procs_by_interval_utilization(procs)[:10]:
-                print "%s : %f" % (procs[pid]["comm"] , procs[pid]["interval_utilization"])
+                print " ".join(get_proc_highlights(procs[pid]))
             print
 
 

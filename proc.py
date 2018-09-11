@@ -120,11 +120,10 @@ def sort_procs_by_interval_utilization(procs):
 
 def get_proc_highlights(proc_dict):
     highlights_keys = ("username", "comm", "virtual_mem_bytes", "physical_mem_pages", "interval_utilization")
-
-    highlights = {}
-    for h in highlights:
+    highlights = []
+    for h in highlights_keys:
         if h in proc_dict:
-            highlights[h] = proc_dict[h]
+            highlights.append(str(proc_dict[h]))
 
     return highlights
 
