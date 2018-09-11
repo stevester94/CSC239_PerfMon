@@ -52,7 +52,6 @@ def calc_percent_time_busy(previous, current):
         assert p["cpu_name"] == c["cpu_name"]
         time_busy = _calc_time_busy(c) - _calc_time_busy(p)
         time_total = _calc_total_time(c) - _calc_total_time(p)
-        print str(time_busy) + "  " + str(time_total)
         times.append((p["cpu_name"], float(time_busy)/time_total))
 
     return times

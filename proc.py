@@ -22,31 +22,14 @@ def get_proc_socket_inodes(pid):
         
     return inodes
 
-# In actuality this is more like a map from pid to inodes that it contains
-def build_inode_to_pid_map():
-    pids =  get_all_pids()
-
+def get_pids_from_inode(inode, proc_dict):
     procs = []
 
-    for pid in pids:
-        # print pid
-        inodes = get_proc_socket_inodes(pid)
-        # print "    " + str(inodes)
-
-        procs.append((pid,inodes))
+    for pid,proc in proc_dict.iteritems():
+        if inode in proc["socket_inodes"]:
+            procs.append(proc)
 
     return procs
-
-
-def get_pids_from_inode(inode, the_map):
-    pids = []
-
-    for p in the_map:
-        if inode in p[2]:
-            pids.append(p[0])
-
-    print "pids: " + str(pids)
-    return pids
 
 
 def get_proc_stat(pid):
@@ -107,15 +90,33 @@ def calc_proc_utilization_interval_percent(prev, current):
     busy_delta = _calc_time_busy(current) - _calc_time_busy(prev)
     total_delta = _calc_total_time(current) - _calc_time_busy(prev)
 
-    return busy_delta/total_delta
+    return float(busy_delta)/total_delta
+
+def dictify_procs(procs):
+    d = {}
+    for p in procs:
+        d[p["pid"]] = p
+
+    return d
 
 # Fill in interval_utilization for current_procs
 def populate_all_proc_utilization_interval_percent(prev_procs, current_procs):
-    for p,c in zip(prev_procs, current_procs):
-        c["interval_utilization"] = calc_proc_utilization_interval_percent(p,c)
 
-    for c in current_procs:
-        assert "interval_utilization" in c
+    for pid,proc in current_procs.iteritems():
+        if pid not in prev_procs:
+            print "Setting interval_utilization to 0 for %s" % pid
+            current_procs[pid]["interval_utilization"] = 0
+            continue # Skip processes that are so new they aren't in the last sweep
+        previous = prev_procs[pid]
+        current  = proc
+        current_procs[pid]["interval_utilization"] = calc_proc_utilization_interval_percent(previous, current)
+
+# Return a list of (pid, interval_utilization) sorted descending by interval_utilization
+def sort_procs_by_interval_utilization(procs):
+    proc_list = [(pid, proc["interval_utilization"]) for pid,proc in procs.iteritems()]
+    proc_list.sort(key=lambda x: x[1], reverse=True)
+
+    return proc_list
 
 def get_proc_highlights(proc_dict):
     highlights_keys = ("username", "comm", "virtual_mem_bytes", "physical_mem_pages", "interval_utilization")

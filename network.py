@@ -1,6 +1,7 @@
 #! /usr/bin/python
 import re
 from utils import *
+from proc import *
 
 import struct
 import socket
@@ -89,8 +90,9 @@ def get_tcp_info():
 
         d = dict(zip(keys, separated_data))
         d["username"] = get_username(d["uid"])
-        associated_pids = get_pids_from_inode(d["inode"], build_inode_to_pid_map())
-        d["pids"] = associated_pids
+
+        associated_procs = get_pids_from_inode(d["inode"], dictify_procs(get_all_complete_procs()))
+        d["procs"] = associated_procs
 
         connections.append(d)
 
@@ -126,8 +128,8 @@ def get_udp_info():
 
         d = dict(zip(keys, separated_data))
         d["username"] = get_username(d["uid"])
-        associated_pids = get_pids_from_inode(d["inode"], build_inode_to_pid_map())
-        d["pids"] = associated_pids
+        associated_procs = get_pids_from_inode(d["inode"], dictify_procs(get_all_complete_procs()))
+        d["pids"] = associated_procs
         connections.append(d)
 
     return connections
