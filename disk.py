@@ -2,7 +2,8 @@
 import re
 from utils import *
 
-def get_disk_reads():
+# Main data product is list of these
+def get_disk_info():
     keys = ("name", "reads_completed", "reads_merged", "sectors_read", "time_reading_ms", 
             "writes_completed", "writes_merged", "sectors_written", "time_writing_ms",
             "current_IO", "time_doing_IO", "weighted_time_doing_IO")
@@ -29,6 +30,22 @@ def get_disk_reads():
 
 
     return disks
+
+def calc_disk_info_rates(prev_list,curr_list,interval):
+    assert len(prev_list) == len(curr_list)
+
+    disk_interval_rates = []
+    for index,disk in enumerate(curr_list):
+        d = {}
+        
+        for key,_ in disk.iteritems():
+            if key == "name":
+                d["name"] = curr_list[index]["name"]
+                continue
+            d[key] = float(curr_list[index][key] - prev_list[index][key]) / interval
+        disk_interval_rates.append(d)
+
+    return disk_interval_rates
 
 
 if __name__ == "__main__":

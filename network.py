@@ -60,6 +60,15 @@ def get_net_metrics():
 
     return d
 
+def calc_net_interval_rate(prev,cur,interval):
+    assert len(prev) == len(cur)
+
+    interval_rates = {}
+    for key,val in cur.iteritems():
+        interval_rates[key] = float(cur[key] - prev[key])/interval
+
+    return interval_rates
+
 
 # There's gonna be garbage, oh well
 def get_tcp_info():
@@ -91,7 +100,7 @@ def get_tcp_info():
         d = dict(zip(keys, separated_data))
         d["username"] = get_username(d["uid"])
 
-        associated_procs = get_pids_from_inode(d["inode"], dictify_procs(get_all_complete_procs()))
+        associated_procs = get_procs_from_inode(d["inode"], dictify_procs(get_all_complete_procs()))
         d["procs"] = associated_procs
 
         connections.append(d)
@@ -100,7 +109,7 @@ def get_tcp_info():
     return connections
 
 def get_udp_info():
-    keys = ("username", "program", "sl", "local_address", "rem_address", "st", "tx_queue:rx_queue", 
+    keys = ("username", "sl", "local_address", "rem_address", "st", "tx_queue:rx_queue", 
             "tr:tm->when", "retrnsmt", "uid", "timeout", "inode", "ref", "pointer", "drops")
 
     f = open("/proc/net/udp")
@@ -124,12 +133,12 @@ def get_udp_info():
         (host,port) = parse_address_and_port(separated_data[2])
         separated_data[2] = host+":"+port
 
-        separated_data = ["USERNAME", "PROGRAM"] + separated_data 
+        separated_data = ["USERNAME",] + separated_data 
 
         d = dict(zip(keys, separated_data))
         d["username"] = get_username(d["uid"])
-        associated_procs = get_pids_from_inode(d["inode"], dictify_procs(get_all_complete_procs()))
-        d["pids"] = associated_procs
+        associated_procs = get_procs_from_inode(d["inode"], dictify_procs(get_all_complete_procs()))
+        d["procs"] = associated_procs
         connections.append(d)
 
     return connections

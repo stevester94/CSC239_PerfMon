@@ -1,6 +1,7 @@
 import re
 import sys
 from utils import *
+from subprocess import Popen, PIPE
 
 # Gets the inode numbers for the socket file descriptors from the fd dir
 def get_proc_socket_inodes(pid):
@@ -22,7 +23,7 @@ def get_proc_socket_inodes(pid):
         
     return inodes
 
-def get_pids_from_inode(inode, proc_dict):
+def get_procs_from_inode(inode, proc_dict):
     procs = []
 
     for pid,proc in proc_dict.iteritems():
@@ -37,7 +38,10 @@ def get_proc_stat(pid):
 
     path = "/proc/" + pid + "/stat"
 
-    f = open(path, "r")
+    try:
+        f = open(path, "r")
+    except:
+        return None
 
     line = f.read()
     (first_part, name, status, second_part) = re.match("(\d+) (\(.*?\)) (.) (.*)", line).groups()
@@ -51,9 +55,11 @@ def get_proc_stat(pid):
     return dict(zip(keys, final))
 
 def get_proc_complete(pid):
-    custom_keys = ("username", "utilization", "socket_inodes", "virtual_mem_bytes", "physical_mem_pages", "running_time") # socket_inodes being an array
+    custom_keys = ("username", "utilization", "socket_inodes", "virtual_mem_bytes", "physical_mem_bytes", "running_time") # socket_inodes being an array
 
     proc_stat = get_proc_stat(pid)
+    if proc_stat == None:
+        return None
     running_time = get_uptime_clocks()["uptime"] - float(proc_stat["starttime"])
     proc_stat["running_time"] = running_time
     username = get_username(get_uid_from_pid(proc_stat["pid"]))
@@ -64,8 +70,12 @@ def get_proc_complete(pid):
     proc_stat["username"] = username
     proc_stat["utilization"] = utilization
     proc_stat["socket_inodes"] = socket_inodes
-    proc_stat['virtual_mem_bytes'] = proc_stat["vsize"]
-    proc_stat['physical_mem_pages'] = proc_stat["rss"]
+    proc_stat['virtual_mem_bytes'] = proc_stat["vsize"] # Yes this is correct
+
+    p = Popen(['getconf', 'PAGESIZE'], stdin=PIPE, stdout=PIPE, stderr=PIPE)
+    page_size, err = p.communicate()
+    page_size = int(page_size)
+    proc_stat['physical_mem_bytes'] = proc_stat["rss"] * page_size
 
 
     return proc_stat
@@ -119,7 +129,7 @@ def sort_procs_by_interval_utilization(procs):
     return proc_list
 
 def get_proc_highlights(proc_dict):
-    highlights_keys = ("username", "comm", "virtual_mem_bytes", "physical_mem_pages", "interval_utilization")
+    highlights_keys = ("username", "comm", "virtual_mem_bytes", "physical_mem_bytes", "interval_utilization")
     highlights = []
     for h in highlights_keys:
         if h in proc_dict:
@@ -142,7 +152,14 @@ def get_all_pids():
 def get_all_complete_procs():
     procs = []
     for pid in get_all_pids():
-        procs.append(get_proc_complete(pid))
+        proc = get_proc_complete(pid)
+        if proc != None:
+            procs.append(proc)
+        else:
+            if pid in get_all_pids():
+                print "this is a weird situation, the defunct pid really does exist!"
+                sys.exit(1)
+
 
     return procs
 
