@@ -1,28 +1,43 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
 import './App.css';
 
-class App extends Component {
+class NewApp extends Component {
+  constructor()
+  {
+    super();
+    // In renderer process (web page).
+    const { ipcRenderer } = window.require('electron');
+    console.log(ipcRenderer.sendSync('synchronous-message', 'Hello main process!'))
+
+    // ipcRenderer.on('asynchronous-reply', (event, arg) => {
+    //   console.log("Renderer asynch received:" + arg) // prints "pong"
+    // })
+    // ipcRenderer.send('asynchronous-message', 'From asynch renderer')
+  }
   render() {
     return (
       <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            Chedd would love this!!
-          </p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
-        </header>
+        <p>
+          Chedd would love this!!<br/>
+          <StevesApp my_state="jej"/>
+        </p>
       </div>
     );
   }
 }
 
-export default App;
+class StevesApp extends Component {
+  render() {
+    return (
+      <div className="Steves_App">
+        This is my app!<br/>
+        My state: {this.props.my_state}
+      </div>
+    );
+  }
+}
+
+export {
+  NewApp,
+  StevesApp
+}

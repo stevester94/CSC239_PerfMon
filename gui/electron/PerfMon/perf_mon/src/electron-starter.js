@@ -11,6 +11,18 @@ const url = require('url');
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow;
 
+// IPC testing to the render window
+const {ipcMain} = require('electron')
+// ipcMain.on('asynchronous-message', (event, arg) => {
+//   console.log("Main received: " + arg) // prints "ping"
+//   event.sender.send('asynchronous-reply', 'Hello from main process')
+// })
+
+ipcMain.on('synchronous-message', (event, arg) => {
+  console.log("Main received: " + arg) // prints "ping"
+  event.returnValue = 'Response from main!'
+})
+
 function createWindow() {
     // Create the browser window.
     mainWindow = new BrowserWindow({width: 800, height: 600});
