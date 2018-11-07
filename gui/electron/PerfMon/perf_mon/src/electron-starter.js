@@ -7,6 +7,8 @@ const BrowserWindow = electron.BrowserWindow;
 const path = require('path');
 const url = require('url');
 
+let g_message_counter = 0;
+
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow;
@@ -18,14 +20,25 @@ const {ipcMain} = require('electron')
 //   event.sender.send('asynchronous-reply', 'Hello from main process')
 // })
 
-ipcMain.on('synchronous-message', (event, arg) => {
-  console.log("Main received: " + arg) // prints "ping"
-  event.returnValue = 'Response from main!'
-})
+
+
+
+
 
 function createWindow() {
     // Create the browser window.
     mainWindow = new BrowserWindow({width: 800, height: 600});
+
+    mainWindow.webContents.on('did-finish-load', () => {
+        mainWindow.webContents.send('main-to-renderer-message', "ARE YOU ALIVE??");
+    });
+
+    ipcMain.on('renderer-to-main-message', (event, arg) => {
+        console.log("Main received: " + arg)
+        mainWindow.webContents.send('main-to-renderer-message', 'ACK' + g_message_counter);
+        g_message_counter++;
+    });
+
     // If we have that url set it means we are in dev mode, otherwise we look at the files that webpack has generated for us (prod mode)
     const startUrl = process.env.ELECTRON_START_URL || url.format({
             pathname: path.join(__dirname, '/../build/index.html'),
