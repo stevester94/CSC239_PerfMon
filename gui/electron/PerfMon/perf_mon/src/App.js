@@ -69,11 +69,11 @@ class MessageWindow extends React.Component {
     let carnality_indicator = null;
     if(this.numRenders % 2)
     {
-      carnality_indicator = OddNum();
+      carnality_indicator = <OddNum />
     }
     else
     {
-      carnality_indicator = EvenNum();
+      carnality_indicator = <EvenNum />
     }
     this.numRenders++;
 
@@ -107,16 +107,20 @@ class SendToMain extends React.Component {
   }
 }
 
-function OddNum() {
-  return (
-    <strong>ODD NUM OF STUFF</strong>
-  );
+class OddNum extends React.Component {
+  render() {
+    return (
+      <strong>ODD NUM OF STUFF</strong>
+    );
+  }
 }
 
-function EvenNum() {
-  return (
-    <strong>EVEN NUM OF STUFF</strong>
-  );
+class EvenNum extends React.Component {
+  render() {
+    return (
+      <strong>EVEN NUM OF STUFF</strong>
+    );
+  }
 }
 
 export {
