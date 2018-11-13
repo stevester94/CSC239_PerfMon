@@ -1,4 +1,6 @@
 const electron = require('electron');
+const fs  = require("fs");
+
 // Module to control application life.
 const app = electron.app;
 // Module to create native browser window.
@@ -21,6 +23,9 @@ const {ipcMain} = require('electron')
 // })
 
 
+let sample_data = fs.readFileSync(path.join(__dirname, '/../test_data/sample_procs.json'), "utf8");
+let procs_json   = JSON.parse(sample_data);
+
 
 
 
@@ -30,13 +35,7 @@ function createWindow() {
     mainWindow = new BrowserWindow({width: 800, height: 600});
 
     mainWindow.webContents.on('did-finish-load', () => {
-        mainWindow.webContents.send('main-to-renderer-message', "ARE YOU ALIVE??");
-    });
-
-    ipcMain.on('renderer-to-main-message', (event, arg) => {
-        console.log("Main received: " + arg)
-        mainWindow.webContents.send('main-to-renderer-message', 'ACK' + g_message_counter);
-        g_message_counter++;
+        mainWindow.webContents.send('procs-json-message', procs_json);
     });
 
     // If we have that url set it means we are in dev mode, otherwise we look at the files that webpack has generated for us (prod mode)

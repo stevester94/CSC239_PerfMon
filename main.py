@@ -7,6 +7,7 @@ import pprint
 from time import sleep
 from proc import *
 import sys
+import json
 
 
 def rate_demo():
@@ -128,7 +129,7 @@ def top_demo():
 def vomit_demo():
     pp = pprint.PrettyPrinter(indent=4)
 
-    prev_net_metrics = None
+    # prev_net_metrics = None
     prev_self_metrics = None
     prev_meminfo = None
     prev_context_switches = None
@@ -138,24 +139,24 @@ def vomit_demo():
     prev_procs  = None
 
     while True:
+        # Net metrics needs work, too slow
+        # print "get_net_metrics()"
 
-        print "get_net_metrics()"
-
-        net_metrics = get_net_metrics()
-        pp.pprint(net_metrics)
-        print "=================================================================================="
-
-
-        print "get_tcp_info()"
-        tcp_info = get_tcp_info()
-        pp.pprint(tcp_info)
-        print "=================================================================================="
+        # net_metrics = get_net_metrics()
+        # pp.pprint(net_metrics)
+        # print "=================================================================================="
 
 
-        print "get_udp_info()"
-        udp_info = get_udp_info()
-        pp.pprint(udp_info)
-        print "=================================================================================="
+        # print "get_tcp_info()"
+        # tcp_info = get_tcp_info()
+        # pp.pprint(tcp_info)
+        # print "=================================================================================="
+
+
+        # print "get_udp_info()"
+        # udp_info = get_udp_info()
+        # pp.pprint(udp_info)
+        # print "=================================================================================="
 
 
         print "get_meminfo()"
@@ -189,10 +190,10 @@ def vomit_demo():
 
 
         SLEEP_TIME = 5
-        if prev_net_metrics != None:
-            print "Network interval rate:"
-            pp.pprint(calc_net_interval_rate(prev_net_metrics, net_metrics, SLEEP_TIME))
-            print "=================================================================================="
+        if prev_procs != None:
+            # print "Network interval rate:"
+            # pp.pprint(calc_net_interval_rate(prev_net_metrics, net_metrics, SLEEP_TIME))
+            # print "=================================================================================="
 
             print "Disk info rates"
             pp.pprint(calc_disk_info_rates(prev_disk_info, disk_info, SLEEP_TIME))
@@ -204,6 +205,9 @@ def vomit_demo():
             pp.pprint(procs.itervalues().next())
             print "=================================================================================="
 
+            f = open("sample_procs.json", "w")
+            f.write(json.dumps(procs))
+            exit(0)
 
             print "get_cpu_utilization()"
             cpus = get_cpu_utilization()
@@ -216,7 +220,7 @@ def vomit_demo():
 
 
 
-        prev_net_metrics = net_metrics
+        # prev_net_metrics = net_metrics
         prev_meminfo = meminfo
         prev_context_switches = context_switches
         prev_interrupts_serviced = interrupts_serviced
