@@ -123,6 +123,72 @@ def top_demo():
         sleep(5)
 
 
+# OK this is getting out of hand
+# Going to verify that the keys in each proc does not change
+def procs_validation():
+    prev_procs = None
+    pp = pprint.PrettyPrinter(indent=4)
+    SLEEP_TIME = 1
+
+    while True:
+        procs = dictify_procs(get_all_complete_procs())
+        if prev_procs != None:
+            populate_all_proc_utilization_interval_percent(prev_procs, procs)
+            last_keys_set = None
+            for proc in procs.itervalues():
+                if last_keys_set != None:
+                    if set(proc.keys()) != last_keys_set:
+                        print "Keys are not equivalent :("
+                        exit(1)
+                    else:
+                        print set(proc.keys())
+                last_keys_set = set(proc.keys())
+
+        prev_procs = procs
+        sleep(SLEEP_TIME)
+
+
+# This function distills the procs into what will be used by the frontend
+# Will probably break this apart, but will serve as an example for now
+def distill_procs():
+    prev_procs = None
+    pp = pprint.PrettyPrinter(indent=4)
+    SLEEP_TIME = 1
+
+
+    desired_keys = [
+        "interval_utilization",
+        "physical_mem_bytes",
+        "username",
+        "comm",
+        "priority",
+        "utime"
+    ] # And will have 'pid', embedded in the for loop
+
+    while True:
+        procs = dictify_procs(get_all_complete_procs())
+        if prev_procs != None:
+            populate_all_proc_utilization_interval_percent(prev_procs, procs)
+            proc_payload = [] # Will be an array of dicts
+
+            for key,value in procs.iteritems():
+                this_proc = {}
+                this_proc["pid"] = key
+                for desired in desired_keys:
+                    this_proc[desired] = value[desired]
+                proc_payload.append(this_proc)
+
+            f = open("sample_procs.json", "w")
+            f.write(json.dumps(proc_payload))
+            f.close()
+            print "Great success, exiting"
+            exit(0)
+
+
+                
+
+        prev_procs = procs
+        sleep(SLEEP_TIME)
 
 
 
@@ -237,3 +303,5 @@ if __name__ == "__main__":
     if sys.argv[1] == "top": top_demo()
     if sys.argv[1] == "rates": rate_demo()
     if sys.argv[1] == "vomit": vomit_demo()
+    if sys.argv[1] == "procs_prep": procs_validation()
+    if sys.argv[1] == "distill_procs": distill_procs()
