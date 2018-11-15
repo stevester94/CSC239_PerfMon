@@ -262,6 +262,52 @@ def validate_procs():
         prev_procs = procs
         sleep(SLEEP_TIME)
 
+def get_all_examples():
+    pp = pprint.PrettyPrinter(indent=4)
+
+    print "=========== procs ==========="
+    first_procs  = dictify_procs(get_all_complete_procs())
+    sleep(5)
+    second_procs = dictify_procs(get_all_complete_procs())
+    populate_all_proc_utilization_interval_percent(first_procs, second_procs)
+    pp.pprint(second_procs.iteritems().next())
+    print "=========== procs ==========="
+
+    print "=========== disks ==========="
+    pp.pprint(get_disk_info())
+    print "=========== disks ==========="
+
+    print "=========== meminfo ==========="
+    pp.pprint(get_meminfo())
+    print "=========== meminfo ==========="
+
+    print "=========== context switches ==========="
+    pp.pprint(get_context_switches())
+    print "=========== context switches ==========="
+
+    print "=========== interrupts ==========="
+    pp.pprint(get_interrupts_serviced())
+    print "=========== interrupts ==========="
+
+    print "=========== cpus ==========="
+    pp.pprint(get_cpu_utilization())
+    print "=========== cpus ==========="
+
+    print "=========== net metrics ==========="
+    net_metrics = get_net_metrics()
+    pp.pprint(net_metrics)
+    print "=========== net metrics ==========="
+
+    print "=========== tcp info ==========="
+    tcp_info = get_tcp_info()[0]
+    pp.pprint(tcp_info)
+    print "=========== tcp info ==========="
+
+    print "=========== udp info ==========="
+    udp_info = get_udp_info()[0]
+    pp.pprint(udp_info)
+    print "=========== udp info ==========="
+
 
 def vomit_demo():
     pp = pprint.PrettyPrinter(indent=4)
@@ -277,23 +323,23 @@ def vomit_demo():
 
     while True:
         # Net metrics needs work, too slow
-        # print "get_net_metrics()"
+        print "get_net_metrics()"
 
-        # net_metrics = get_net_metrics()
-        # pp.pprint(net_metrics)
-        # print "=================================================================================="
-
-
-        # print "get_tcp_info()"
-        # tcp_info = get_tcp_info()
-        # pp.pprint(tcp_info)
-        # print "=================================================================================="
+        net_metrics = get_net_metrics()
+        pp.pprint(net_metrics)
+        print "=================================================================================="
 
 
-        # print "get_udp_info()"
-        # udp_info = get_udp_info()
-        # pp.pprint(udp_info)
-        # print "=================================================================================="
+        print "get_tcp_info()"
+        tcp_info = get_tcp_info()
+        pp.pprint(tcp_info)
+        print "=================================================================================="
+
+
+        print "get_udp_info()"
+        udp_info = get_udp_info()
+        pp.pprint(udp_info)
+        print "=================================================================================="
 
 
         print "get_meminfo()"
@@ -376,3 +422,5 @@ if __name__ == "__main__":
     if sys.argv[1] == "validate_context_switches": validate_context_switches()
     if sys.argv[1] == "validate_interrupts_serviced": validate_interrupts_serviced()
     if sys.argv[1] == "validate_disk_info": validate_disk_info()
+    if sys.argv[1] == "get_all_keys": get_all_keys()
+    if sys.argv[1] == "get_all_examples": get_all_examples()
