@@ -24,18 +24,8 @@ class StevesTable extends Component {
   
     constructor()
     {
-      super();
-      // In renderer process (web page).
-  
+      super();  
       this.state.table_data = sample_procs;
-  
-      // ipcRenderer.on('procs-json-message', (event, arg) => {
-      //   console.log("Renderer received following from Main process:");
-      //   console.log(arg);
-      //   this.setState(prevState =>({
-      //     procs: JSON.stringify(arg)
-      //   }));
-      // });
     }
   
     render() {

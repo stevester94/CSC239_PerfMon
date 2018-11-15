@@ -16,13 +16,13 @@ class NewApp extends Component {
     super();
     // In renderer process (web page).
 
-    // ipcRenderer.on('procs-json-message', (event, arg) => {
-    //   console.log("Renderer received following from Main process:");
-    //   console.log(arg);
-    //   this.setState(prevState =>({
-    //     procs: JSON.stringify(arg)
-    //   }));
-    // });
+    ipcRenderer.on('procs-json-message', (event, arg) => {
+      console.log("Renderer received following from Main process:");
+      console.log(arg);
+      this.setState(prevState =>({
+        procs: JSON.stringify(arg)
+      }));
+    });
   }
 
   render() {
