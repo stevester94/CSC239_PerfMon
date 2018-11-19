@@ -9,47 +9,131 @@ from proc import *
 import sys
 import json
 
-# This function distills the procs into what will be used by the frontend
-# Will probably break this apart, but will serve as an example for now
-def distill_procs():
-    prev_procs = None
-    pp = pprint.PrettyPrinter(indent=4)
-    SLEEP_TIME = 1
+class Distiller:
+    def __init__(self):
+        self.pp = pprint.PrettyPrinter(indent=4)
+
+        self.prev_procs = None
+        self.proc_payload = {} # Will be an array of dicts
+
+        self.prev_disks = None
+        self.disk_payload = {} # Will be a dict of dicts with disk as first key
+
+        self.system_payload = {}
+
+        self.prev_cpu = None
+        self.cpu_payload = {}
 
 
-    desired_keys = [
-        "interval_utilization",
-        "physical_mem_bytes",
-        "username",
-        "comm",
-        "priority",
-        "utime"
-    ] # And will have 'pid', embedded in the for loop
 
-    while True:
+
+
+    # This function distills the procs into what will be used by the frontend
+    # Will probably break this apart, but will serve as an example for now
+    def distill_procs(self):
+
+        desired_keys = [
+            "interval_utilization",
+            "physical_mem_bytes",
+            "username",
+            "comm",
+            "priority",
+            "utime"
+        ] # With pid as the primary key
+
         procs = dictify_procs(get_all_complete_procs())
-        if prev_procs != None:
-            populate_all_proc_utilization_interval_percent(prev_procs, procs)
-            proc_payload = [] # Will be an array of dicts
+        if self.prev_procs != None:
+            populate_all_proc_utilization_interval_percent(self.prev_procs, procs)
 
-            for key,value in procs.iteritems():
+            self.proc_payload = {}# Clear if we have anything already
+
+            for pid,value in procs.iteritems():
                 this_proc = {}
-                this_proc["pid"] = key
                 for desired in desired_keys:
                     this_proc[desired] = value[desired]
-                proc_payload.append(this_proc)
+                self.proc_payload[pid] = this_proc
 
-            f = open("sample_procs.json", "w")
-            f.write(json.dumps(proc_payload))
-            f.close()
-            print "Great success, exiting"
-            exit(0)
+                self.pp.pprint(self.proc_payload)
+
+        self.prev_procs = procs
+    
+
+    # disk reads, block reads, disk writes, blocks written
+    def distill_disks(self):
+        disk_info = get_disk_info() # List of disks
+
+        desired_keys = [
+            "reads_completed",
+            "sectors_read",
+            "sectors_written",
+            "writes_completed"
+        ] # With disk name as primary key
+
+        self.disk_payload = {}
 
 
-                
+        for disk in disk_info:
+            cur_disk_dict = {}
 
-        prev_procs = procs
-        sleep(SLEEP_TIME)
+            for k in desired_keys:
+                cur_disk_dict[k] = disk[k]
+            self.disk_payload[disk["name"]] = cur_disk_dict
+
+        self.pp.pprint(self.disk_payload)
+
+
+    def distill_system(self):
+        desired_keys = [
+            'free_kbytes',
+            'total_kbytes',
+            'used_percent',
+            "context_switches",
+            "interrupts"
+        ]
+
+        mem_info = get_meminfo()
+        interrupts = get_interrupts_serviced()
+        context_switches = get_context_switches()
+
+        # Just hijacking the mem_info dict for lazyness
+        mem_info["context_switches"] = context_switches
+        mem_info["interrupts"] = interrupts
+
+        self.system_payload = mem_info
+
+        self.pp.pprint(self.system_payload)
+
+    def distill_cpus(self):
+        desired_keys = [
+            "system_mode_ms",
+            "user_mode_ms"
+        ] # and interval_utilization, cpu_name as the primary key
+        cur_cpu = get_cpu_utilization()
+
+        if self.prev_cpu != None:
+            self.cpu_payload = {}
+
+            # Just init the cpu_name primary keys
+            for cpu in cur_cpu:
+                self.cpu_payload[cpu["cpu_name"]] = {}
+            
+            for cpu in cur_cpu:
+                for key in desired_keys:
+                    self.cpu_payload[cpu["cpu_name"]][key] = cpu[key]
+
+            percents = calc_percent_time_busy(self.prev_cpu, cur_cpu)
+            for cpu in percents:
+                self.cpu_payload[cpu[0]]["interval_utilization"] = cpu[1]
+
+            # self.pp.pprint(percents)
+            self.pp.pprint(self.cpu_payload)
+
+        self.prev_cpu = cur_cpu
+
+
+###################
+# Validation code #
+###################
 
 def are_keys_same_as_last(previous_dict, current_dict):
     return set(previous_dict.keys()) == set(current_dict.keys())
@@ -145,13 +229,29 @@ def validate_procs():
         prev_procs = procs
         sleep(SLEEP_TIME)
 
+def distiller_test():
+    distiller = Distiller()
+
+
+    # distiller.distill_disks()
+
+    # distiller.distill_procs()
+    # distiller.distill_procs()
+
+    # distiller.distill_system()
+
+    distiller.distill_cpus()
+    sleep(5)
+    distiller.distill_cpus()
+
+
 
 
 
 if __name__ == "__main__":
     if sys.argv[1] == "validate_procs": validate_procs()
-    if sys.argv[1] == "distill_procs": distill_procs()
     if sys.argv[1] == "validate_meminfo": validate_meminfo()
     if sys.argv[1] == "validate_context_switches": validate_context_switches()
     if sys.argv[1] == "validate_interrupts_serviced": validate_interrupts_serviced()
     if sys.argv[1] == "validate_disk_info": validate_disk_info()
+    if sys.argv[1] == "distiller_test": distiller_test()
