@@ -27,6 +27,24 @@ let sample_data = fs.readFileSync(path.join(__dirname, '/../test_data/sample_pro
 let procs_json   = JSON.parse(sample_data);
 
 
+// UDP Listening 
+var PORT = 9001;
+var HOST = '0.0.0.0';
+
+var dgram = require('dgram');
+var server = dgram.createSocket('udp4');
+
+server.on('listening', function () {
+    var address = server.address();
+    console.log('UDP Server listening on ' + address.address + ":" + address.port);
+});
+
+server.on('message', function (message, remote) {
+    json_payload = JSON.parse(message)
+    console.log("Message received, msg_id: " + json_payload.msg_id);
+});
+
+server.bind(PORT, HOST);
 
 
 
@@ -48,7 +66,7 @@ function createWindow() {
     mainWindow.loadURL(startUrl);
 
     // Open the DevTools.
-    mainWindow.webContents.openDevTools();
+    // mainWindow.webContents.openDevTools();
 
     // Emitted when the window is closed.
     mainWindow.on('closed', function () {

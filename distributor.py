@@ -8,6 +8,9 @@ from time import sleep
 from proc import *
 import sys
 import json
+import socket
+import threading
+
 
 pp = pprint.PrettyPrinter(indent=4)
 
@@ -55,6 +58,7 @@ class Distiller:
                 self.proc_payload[pid] = this_proc
 
         self.prev_procs = procs
+        return self.proc_payload
     
 
     # disk reads, block reads, disk writes, blocks written
@@ -77,6 +81,7 @@ class Distiller:
             for k in desired_keys:
                 cur_disk_dict[k] = disk[k]
             self.disk_payload[disk["name"]] = cur_disk_dict
+        return self.disk_payload
 
 
     def distill_system(self):
@@ -97,6 +102,7 @@ class Distiller:
         mem_info["interrupts"] = interrupts
 
         self.system_payload = mem_info
+        return self.system_payload
 
     def distill_cpus(self):
         desired_keys = [
@@ -121,6 +127,86 @@ class Distiller:
                 self.cpu_payload[cpu[0]]["interval_utilization"] = cpu[1]
 
         self.prev_cpu = cur_cpu
+        return self.cpu_payload
+
+
+class Distributor(threading.Thread):
+    def __init__(self, port, interval):
+        # self.super()
+        self.valid_msgs = [
+            "msg_disks",
+            "msg_procs",
+            "msg_system",
+            "msg_cpus"
+        ]
+
+        self.port = port
+        self.interval = interval
+        self.distiller = Distiller()
+
+        distiller = Distiller()
+
+        # Prime the pump
+        self.distiller.distill_disks()
+        self.distiller.distill_procs()
+        self.distiller.distill_system()
+        self.distiller.distill_cpus()
+    
+    # Will jsonify, payload must be a dict of {msg_id, data}
+    def send_payload(self, payload):
+        if payload["msg_id"] not in self.valid_msgs:
+            print "msg_id: ", payload.msg_id, " is not valid"
+            sys.exit(1)
+
+        json_payload = json.dumps(payload)
+        UDP_IP = "127.0.0.1"
+        UDP_PORT = self.port
+        print "UDP target IP:", UDP_IP
+        print "UDP target port:", UDP_PORT
+
+        print "Sending payload:", json_payload 
+        sock = socket.socket(socket.AF_INET, # Internet
+                            socket.SOCK_DGRAM) # UDP
+
+        sock.sendto(json_payload, (UDP_IP, UDP_PORT))
+
+    def send_disks(self):
+        payload = {}
+        payload["msg_id"] = "msg_disks"
+        payload["data"] = self.distiller.distill_disks()
+        self.send_payload(payload)
+
+    def send_procs(self):
+        payload = {}
+        payload["msg_id"] = "msg_procs"
+        payload["data"] = self.distiller.distill_procs()
+        self.send_payload(payload)
+        
+    def send_system(self):
+        payload = {}
+        payload["msg_id"] = "msg_system"
+        payload["data"] = self.distiller.distill_system()
+        self.send_payload(payload)
+        
+    def send_cpus(self):
+        payload = {}
+        payload["msg_id"] = "msg_cpus"
+        payload["data"] = self.distiller.distill_cpus()
+        self.send_payload(payload)
+
+    def send_all(self):
+        self.send_disks()
+        self.send_procs()
+        self.send_system()
+        self.send_cpus()
+
+    def run(self):
+        while True:
+            self.send_all()
+            sleep(self.interval)
+
+
+
 
 
 ###################
@@ -242,6 +328,12 @@ def distiller_test():
     pp.pprint(distiller.cpu_payload)
 
 
+def distributor_test():
+    distributor = Distributor(9001, 1) # port 9001, sleep time of 1
+
+    distributor.run()
+
+
 
 
 
@@ -254,3 +346,4 @@ if __name__ == "__main__":
     if sys.argv[1] == "validate_interrupts_serviced": validate_interrupts_serviced()
     if sys.argv[1] == "validate_disk_info": validate_disk_info()
     if sys.argv[1] == "distiller_test": distiller_test()
+    if sys.argv[1] == "distributor_test": distributor_test()
