@@ -42,6 +42,8 @@ server.on('listening', function () {
 server.on('message', function (message, remote) {
     json_payload = JSON.parse(message)
     console.log("Message received, msg_id: " + json_payload.msg_id);
+    mainWindow.webContents.send(json_payload.msg_id, json_payload.data);
+
 });
 
 server.bind(PORT, HOST);
@@ -52,9 +54,9 @@ function createWindow() {
     // Create the browser window.
     mainWindow = new BrowserWindow({width: 800, height: 600});
 
-    mainWindow.webContents.on('did-finish-load', () => {
-        mainWindow.webContents.send('procs-json-message', procs_json);
-    });
+    // mainWindow.webContents.on('did-finish-load', () => {
+    //     mainWindow.webContents.send('procs-json-message', procs_json);
+    // });
 
     // If we have that url set it means we are in dev mode, otherwise we look at the files that webpack has generated for us (prod mode)
     const startUrl = process.env.ELECTRON_START_URL || url.format({

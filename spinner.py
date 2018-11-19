@@ -1,7 +1,8 @@
 #! /usr/bin/python
 
 import time
+import sys
 
 while True:
     print "Go!"
-    time.sleep(1)
+    time.sleep(int(sys.argv[1]))

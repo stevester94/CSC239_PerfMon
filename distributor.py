@@ -144,8 +144,6 @@ class Distributor(threading.Thread):
         self.interval = interval
         self.distiller = Distiller()
 
-        distiller = Distiller()
-
         # Prime the pump
         self.distiller.distill_disks()
         self.distiller.distill_procs()
@@ -329,7 +327,7 @@ def distiller_test():
 
 
 def distributor_test():
-    distributor = Distributor(9001, 1) # port 9001, sleep time of 1
+    distributor = Distributor(9001, 1) # port 9001, sleep time
 
     distributor.run()
 
