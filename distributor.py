@@ -9,20 +9,21 @@ from proc import *
 import sys
 import json
 
+pp = pprint.PrettyPrinter(indent=4)
+
+
 class Distiller:
     def __init__(self):
-        self.pp = pprint.PrettyPrinter(indent=4)
-
         self.prev_procs = None
-        self.proc_payload = {} # Will be an array of dicts
+        self.proc_payload = {} # Will be a dict of dicts with pid as primary key
 
         self.prev_disks = None
-        self.disk_payload = {} # Will be a dict of dicts with disk as first key
+        self.disk_payload = {} # Will be a dict of dicts with disk as primary key
 
         self.system_payload = {}
 
         self.prev_cpu = None
-        self.cpu_payload = {}
+        self.cpu_payload = {} # Will be a dict of dicts with disk as primary key
 
 
 
@@ -53,8 +54,6 @@ class Distiller:
                     this_proc[desired] = value[desired]
                 self.proc_payload[pid] = this_proc
 
-                self.pp.pprint(self.proc_payload)
-
         self.prev_procs = procs
     
 
@@ -79,8 +78,6 @@ class Distiller:
                 cur_disk_dict[k] = disk[k]
             self.disk_payload[disk["name"]] = cur_disk_dict
 
-        self.pp.pprint(self.disk_payload)
-
 
     def distill_system(self):
         desired_keys = [
@@ -100,8 +97,6 @@ class Distiller:
         mem_info["interrupts"] = interrupts
 
         self.system_payload = mem_info
-
-        self.pp.pprint(self.system_payload)
 
     def distill_cpus(self):
         desired_keys = [
@@ -124,9 +119,6 @@ class Distiller:
             percents = calc_percent_time_busy(self.prev_cpu, cur_cpu)
             for cpu in percents:
                 self.cpu_payload[cpu[0]]["interval_utilization"] = cpu[1]
-
-            # self.pp.pprint(percents)
-            self.pp.pprint(self.cpu_payload)
 
         self.prev_cpu = cur_cpu
 
@@ -232,17 +224,24 @@ def validate_procs():
 def distiller_test():
     distiller = Distiller()
 
+    distiller.distill_disks()
 
-    # distiller.distill_disks()
+    distiller.distill_procs()
+    distiller.distill_procs()
 
-    # distiller.distill_procs()
-    # distiller.distill_procs()
-
-    # distiller.distill_system()
+    distiller.distill_system()
 
     distiller.distill_cpus()
     sleep(5)
     distiller.distill_cpus()
+
+    # Print results
+    pp.pprint(distiller.disk_payload)
+    pp.pprint(distiller.proc_payload)
+    pp.pprint(distiller.system_payload)
+    pp.pprint(distiller.cpu_payload)
+
+
 
 
 
