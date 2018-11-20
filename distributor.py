@@ -28,6 +28,7 @@ class Distiller:
         self.prev_cpu = None
         self.cpu_payload = {} # Will be a dict of dicts with disk as primary key
 
+        self.prev_net_metrics = None
 
 
 
@@ -130,6 +131,79 @@ class Distiller:
 
         self.prev_cpu = cur_cpu
         return self.cpu_payload
+
+    def distill_network(self, interval):
+        net_metric_keys = ["ip_forwarding", "ip_in_receive", "ip_out_request", 
+                "tcp_active_opens", "tcp_current_established", "tcp_in_segs", "tcp_out_segs", 
+                "udp_in_datagram", "udp_out_datagram"]
+
+        tcp_info_keys = [
+            "local_address",
+            "rem_address",
+            "username",
+            "program"
+        ]
+
+        udp_info_keys = [
+            "local_address",
+            "rem_address",
+            "username",
+            "program"  
+        ]
+
+
+        net_metric_rates = None
+        filtered_net_metric_rates = None
+        net_metrics = None
+        filtered_net_metrics = None
+
+        print "get_net_metrics()"
+        # Calc metric interval if applicable
+        net_metrics = get_net_metrics()
+        if self.prev_net_metrics != None:
+            net_metric_rates = calc_net_interval_rate(self.prev_net_metrics, net_metrics, interval)
+        self.prev_net_metrics = net_metrics
+
+        # Get only the keys we want
+        filtered_net_metrics = {}
+        for k in net_metric_keys:
+            filtered_net_metrics[k] = net_metrics[k]
+        
+        # Do the same if we have the rate based data
+        if net_metric_rates != None:
+            filtered_net_metric_rates = {}
+            for k in net_metric_keys:
+                filtered_net_metric_rates[k] = net_metric_rates[k]
+
+        # OK, so there _can_ be multiple processes that write to the same inode (socket), but that is 
+        # not common.
+        filtered_tcp = []
+        tcp_info = get_tcp_info()
+        for tcp in tcp_info:
+            socket_dict = {}
+            for k in tcp_info_keys:
+                socket_dict[k] = tcp[k]
+            filtered_tcp.append(socket_dict)
+
+        # print "=================================================================================="
+
+
+        udp_info = get_udp_info()
+        filtered_udp = []
+        for udp in udp_info:
+            socket_dict = {}
+            for k in udp_info_keys:
+                socket_dict[k] = udp[k]
+            filtered_udp.append(socket_dict)
+        # print "=================================================================================="
+
+        ret_dict = {}
+        ret_dict["net_metric_rates"] = filtered_net_metric_rates
+        ret_dict["tcp_info"] = filtered_tcp
+        ret_dict["udp_info"] = filtered_udp
+        ret_dict["net_metrics"] = filtered_net_metrics
+
+        return ret_dict
 
 
 class Distributor(threading.Thread):
@@ -327,6 +401,14 @@ def distiller_test():
     pp.pprint(distiller.system_payload)
     pp.pprint(distiller.cpu_payload)
 
+def distill_network():
+    distiller = Distiller()
+
+    pp.pprint(distiller.distill_network(5))
+    sleep(5)
+    pp.pprint(distiller.distill_network(5))
+
+
 
 def distributor_test():
     distributor = Distributor(9001, 1) # port 9001, sleep time
@@ -347,3 +429,4 @@ if __name__ == "__main__":
     if sys.argv[1] == "validate_disk_info": validate_disk_info()
     if sys.argv[1] == "distiller_test": distiller_test()
     if sys.argv[1] == "distributor_test": distributor_test()
+    if sys.argv[1] == "distill_network": distill_network()
