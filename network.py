@@ -73,7 +73,7 @@ def calc_net_interval_rate(prev,cur,interval):
 # There's gonna be garbage, oh well
 def get_tcp_info():
     keys = ("username", "program", "sl", "local_address", "rem_address", "st", "tx_queue:rx_queue", 
-            "tr:tm->when", "retrnsmt", "uid", "timeout", "inode")
+            "tr:tm->when", "retrnsmt", "uid", "timeout", "inode", "procs")
 
     f = open("/proc/net/tcp")
 
@@ -102,6 +102,10 @@ def get_tcp_info():
 
         associated_procs = get_procs_from_inode(d["inode"], dictify_procs(get_all_complete_procs()))
         d["procs"] = associated_procs
+        if len(associated_procs) > 0:
+            d["program"] = associated_procs[0]["comm"]
+        else:
+            d["program"] = "none"
 
         connections.append(d)
 
@@ -139,14 +143,88 @@ def get_udp_info():
         d["username"] = get_username(d["uid"])
         associated_procs = get_procs_from_inode(d["inode"], dictify_procs(get_all_complete_procs()))
         d["procs"] = associated_procs
+        if len(associated_procs) > 0:
+            d["program"] = associated_procs[0]["comm"]
+        else:
+            d["program"] = "none"
         connections.append(d)
 
     return connections
 
 
+def get_nic_stats():
+    keys = [
+        "bytes_recvd",
+        "packets_recvd",
+        "errs_recvd",
+        "drop_recvd",
+        "fifo_recvd",
+        "frame_recvd",
+        "compressed_recvd",
+        "multicast_revd",
+        "bytes_sent",
+        "packets_sent",
+        "errs_sent",
+        "drop_sent",
+        "fifo_sent",
+        "colls_sent",
+        "carrier_sent",
+        "compressed_sent"
+    ] # With "interface" as primary key
+
+
+    f = open("/proc/net/dev")
+
+    # First two lines are junk
+    f.readline()
+    f.readline()
+
+    nics = {}
+    for line in f.readlines():
+        split_line = line.split()
+        nic_dict =  {}
+        nic_dict["interface"] = split_line[0]
+        for index,key in enumerate(keys):
+            nic_dict[key] = int(split_line[index+1]) # Ofset because first split is the interface name
+        nics[split_line[0]] = nic_dict
+
+    return nics
+
+def calc_nic_rates(prev_nics, current_nics, interval_secs):
+
+    keys = [
+        "bytes_recvd",
+        "packets_recvd",
+        "errs_recvd",
+        "drop_recvd",
+        "fifo_recvd",
+        "frame_recvd",
+        "compressed_recvd",
+        "multicast_revd",
+        "bytes_sent",
+        "packets_sent",
+        "errs_sent",
+        "drop_sent",
+        "fifo_sent",
+        "colls_sent",
+        "carrier_sent",
+        "compressed_sent"
+    ] # With 'interface' as primary key
+
+    nic_rates = {}
+    for nic, _ in current_nics.iteritems():
+        rate_dict = {}
+        for k in keys:
+            rate_dict[k] = (current_nics[nic][k] - prev_nics[nic][k]) / interval_secs
+        nic_rates[nic] = rate_dict
+    
+    return nic_rates
+
 
 
 if __name__ == "__main__":
-    print get_udp_info()
-    print get_tcp_info()
-    print get_overall_metrics()
+    from time import sleep
+    prev = get_nic_stats()
+    sleep(5)
+    cur = get_nic_stats()
+    print calc_nic_rates(prev, cur, 5)
