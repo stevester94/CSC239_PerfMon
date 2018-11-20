@@ -90,7 +90,8 @@ class Distiller:
             'total_kbytes',
             'used_percent',
             "context_switches",
-            "interrupts"
+            "interrupts",
+            "uptime_secs"
         ]
 
         mem_info = get_meminfo()
@@ -100,6 +101,7 @@ class Distiller:
         # Just hijacking the mem_info dict for lazyness
         mem_info["context_switches"] = context_switches
         mem_info["interrupts"] = interrupts
+        mem_info["uptime_secs"] = get_uptime()
 
         self.system_payload = mem_info
         return self.system_payload

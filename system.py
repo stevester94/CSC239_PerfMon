@@ -97,10 +97,15 @@ def get_meminfo():
     
     f.close()
     return d
-    
+
+def get_uptime():
+    f = open("/proc/uptime")
+    line = f.readline()
+    (uptime, _) = line.split(" ")
+
+    return int(float(uptime))
     
 if __name__ == "__main__":
-    print get_process_metrics("self")
     print get_meminfo()
     print get_context_switches()
     print get_interrupts_serviced()
