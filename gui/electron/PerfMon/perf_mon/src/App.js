@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import StevesTable from "./StevesTable.js"
+import StevesStreamingGraph from "./StevesStreamingGraph.js"
 
 import './App.css';
 import 'react-table/react-table.css'
@@ -133,7 +134,7 @@ class NewApp extends Component {
         { this.state.buttons.map(function(button_data) {
           return <button onClick={this.handleChildClick.bind(this, button_data.name)}>{button_data.name}</button>
         }.bind(this)) }
-
+        <StevesStreamingGraph />
         <StevesTable table_data={this.generate_table_data()}/>
       </div>
     );
