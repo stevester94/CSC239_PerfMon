@@ -4,82 +4,10 @@ import {Line} from 'react-chartjs-2';
 import './App.css';
 import 'react-table/react-table.css'
 // import { throws } from 'assert';
+import StevesStreamingGraph from "./StevesStreamingGraph.js"
+
 
 const { ipcRenderer } = window.require('electron');
-
-// var streamingData = [0,1000,10,900,500];
-// function chartData() {
-
-//   return {
-//     datasets: [
-//       {
-//         label: 'My First dataset',
-//         fillColor: 'rgba(220,220,220,0.2)',
-//         strokeColor: 'rgba(220,220,220,1)',
-//         pointColor: 'rgba(220,220,220,1)',
-//         pointStrokeColor: '#fff',
-//         pointHighlightFill: '#fff',
-//         pointHighlightStroke: 'rgba(220,220,220,1)',
-//         data: streamingData,
-//       }
-//     ]
-//   }
-// }
-
-
-function randomScalingFactor() {
-  return Math.random  * 1000;
-};
-
-var labels = [];
-var data_points = [];
-
-var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-var config = {
-  type: 'line',
-  data: {
-    labels: labels,
-    datasets: [{
-      label: 'My First dataset',
-      backgroundColor: 'rgb(255, 99, 132)',
-      borderColor: 'rgb(255, 99, 132)',
-      data: data_points,
-      fill: false,
-    }]
-  },
-  options: {
-    responsive: true,
-    animation: false,
-    title: {
-      display: true,
-      text: 'Chart.js Line Chart'
-    },
-    tooltips: {
-      mode: 'index',
-      intersect: false,
-    },
-    hover: {
-      mode: 'nearest',
-      intersect: true
-    },
-    scales: {
-      xAxes: [{
-        display: true,
-        scaleLabel: {
-          display: true,
-          labelString: 'Month'
-        }
-      }],
-      yAxes: [{
-        display: true,
-        scaleLabel: {
-          display: true,
-          labelString: 'Value'
-        }
-      }]
-    }
-  }
-};
 
 class NewApp extends Component {
   state = {
@@ -97,6 +25,7 @@ class NewApp extends Component {
     ],
     current_button: "Processes"
   };
+
   constructor()
   {
     super();
@@ -109,9 +38,9 @@ class NewApp extends Component {
     ipcRenderer.on('msg_procs', (event, arg) => {
       console.log("Renderer received following msg_id: " + "msg_procs");
 
-      data_points.push(this.num_received * this.num_received);
-      labels.push(this.num_received);
-      this.num_received++;
+      // data_points.push(this.num_received * this.num_received);
+      // labels.push(this.num_received);
+      // this.num_received++;
 
       this.setState(prevState =>({
         procs: arg
@@ -213,9 +142,7 @@ class NewApp extends Component {
           return <button onClick={this.handleChildClick.bind(this, button_data.name)}>{button_data.name}</button>
         }.bind(this)) }
         
-        {/* <Line data={config.data} options={config.options} width="600" height="250" type="line" redraw={true}/> */}
-        <Line data={config.data} options={config.options} width={600} height={250} type="line" redraw={true}/>
-
+        <StevesStreamingGraph />
         <StevesTable table_data={this.generate_table_data()}/>
       </div>
     );
