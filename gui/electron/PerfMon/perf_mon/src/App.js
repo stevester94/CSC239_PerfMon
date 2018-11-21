@@ -38,9 +38,7 @@ class NewApp extends Component {
     ipcRenderer.on('msg_procs', (event, arg) => {
       console.log("Renderer received following msg_id: " + "msg_procs");
 
-      // data_points.push(this.num_received * this.num_received);
-      // labels.push(this.num_received);
-      // this.num_received++;
+      this.num_received++;
 
       this.setState(prevState =>({
         procs: arg
@@ -131,19 +129,41 @@ class NewApp extends Component {
 
     return table_data;
   }
-//        <LineChart data={data} options={options} width="600" height="250"/>
 
   render() {
-    
-    return (
+    let streaming_graph;
+    let table;
+    let table_data = this.generate_table_data();
 
+    if(this.state.current_button === "Processes" && this.state.procs != null)
+    {
+      streaming_graph = <StevesStreamingGraph
+                          title="Num Procs"
+                          label={this.num_received} 
+                          data_point={table_data.length} 
+                          max_data_points={5}/>;
+      table           = <StevesTable table_data={table_data}/>;
+    }
+    else
+    {
+      streaming_graph = <StevesStreamingGraph label={this.num_received} data_point={this.num_received*this.num_received} max_data_points={10}/>;
+      table           = <StevesTable table_data={table_data}/>;
+    }
+    return (
       <div>
         { this.state.buttons.map(function(button_data) {
           return <button onClick={this.handleChildClick.bind(this, button_data.name)}>{button_data.name}</button>
         }.bind(this)) }
+
+        <div class="container">
+          <div>{streaming_graph}</div>
+          <div>{streaming_graph}</div>
+          <div>{streaming_graph}</div>
+        </div>​
+
+        {/* {streaming_graph} */}
+        {table}
         
-        <StevesStreamingGraph />
-        <StevesTable table_data={this.generate_table_data()}/>
       </div>
     );
   }

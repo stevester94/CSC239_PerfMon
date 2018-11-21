@@ -1,6 +1,6 @@
 import {Line} from 'react-chartjs-2';
 import 'react-table/react-table.css';
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 
 
 
@@ -13,7 +13,7 @@ var options= {
     responsive: true,
     animation: false,
     title: {
-    display: true,
+    display: false,
     text: 'Chart.js Line Chart'
     },
     tooltips: {
@@ -28,21 +28,21 @@ var options= {
     xAxes: [{
         display: true,
         scaleLabel: {
-        display: true,
+        display: false,
         labelString: 'Month'
         }
     }],
     yAxes: [{
         display: true,
         scaleLabel: {
-        display: true,
+        display: false,
         labelString: 'Value'
         }
     }]
     }
 };
 
-class StevesStreamingGraph extends Component {
+class StevesStreamingGraph extends PureComponent {
     constructor()
     {
         super();
@@ -61,8 +61,19 @@ class StevesStreamingGraph extends Component {
         }
     }
     render() {
+        const {data_point, label, max_data_points} = this.props;
+        this.data_points.push(data_point);
+        this.labels.push(label);
+
+        // Since we only receive one data point at a time, only need to pop one element from front
+        if(this.data_points.length > max_data_points)
+        {
+            this.data_points.shift();
+            this.labels.shift();
+        }
+        //<Line data={this.data} options={options} width={600} height={250} type={type} redraw={true}/>
         return(
-            <Line data={this.data} options={options} width={600} height={250} type={type} redraw={true}/>
+            <Line data={this.data} options={options} type={type} redraw={true}/>
         );
     };
 
