@@ -23,13 +23,13 @@ class Distiller:
         self.prev_disks = None
         self.disk_payload = {} # Will be a dict of dicts with disk as primary key
 
-        self.system_payload = {}
+        self.system_payload = {} # system_payload is simple dict
 
         self.prev_cpu = None
         self.cpu_payload = {} # Will be a dict of dicts with disk as primary key
 
         self.prev_net_metrics = None
-
+        # net_metrics are a simple dict of fields
 
 
 

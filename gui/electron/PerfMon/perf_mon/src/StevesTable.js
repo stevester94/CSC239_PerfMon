@@ -33,6 +33,7 @@ class StevesTable extends Component {
       const { table_data } = this.props;
       if(table_data == null)
       {
+        console.log("StevesTable got no data")
         return (<div>no data</div>);
       }
       return (
