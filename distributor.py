@@ -148,7 +148,8 @@ class Distiller:
             "local_address",
             "rem_address",
             "username",
-            "program"  
+            "program",
+            "inode"
         ]
 
 
@@ -213,7 +214,8 @@ class Distributor(threading.Thread):
             "msg_disks",
             "msg_procs",
             "msg_system",
-            "msg_cpus"
+            "msg_cpus",
+            "msg_net"
         ]
 
         self.port = port
@@ -268,11 +270,18 @@ class Distributor(threading.Thread):
         payload["data"] = self.distiller.distill_cpus()
         self.send_payload(payload)
 
+    def send_net(self):
+        payload = {}
+        payload["msg_id"] = "msg_net"
+        payload["data"]   = self.distiller.distill_network(self.interval)
+        self.send_payload(payload)
+
     def send_all(self):
         self.send_disks()
         self.send_procs()
         self.send_system()
         self.send_cpus()
+        self.send_net()
 
     def run(self):
         while True:
@@ -403,10 +412,10 @@ def distiller_test():
 
 def distill_network():
     distiller = Distiller()
-
-    pp.pprint(distiller.distill_network(5))
-    sleep(5)
-    pp.pprint(distiller.distill_network(5))
+    while True:
+        pp.pprint(distiller.distill_network(5))
+        sleep(5)
+        pp.pprint(distiller.distill_network(5))
 
 
 
