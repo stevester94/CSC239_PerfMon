@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import StevesTable from "./StevesTable.js"
+import DetailsReadout from "./DetailsReadout.js"
 import {Line} from 'react-chartjs-2';
 import './App.css';
 import 'react-table/react-table.css'
@@ -157,8 +158,7 @@ class NewApp extends Component {
 
         <div class="container">
           <div>{streaming_graph}</div>
-          <div>{streaming_graph}</div>
-          <div>{streaming_graph}</div>
+          <div><DetailsReadout details={["jejjjjjjjjjjjjj", "kek"]}/></div>
         </div>​
 
         {/* {streaming_graph} */}

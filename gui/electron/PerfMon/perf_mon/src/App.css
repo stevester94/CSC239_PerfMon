@@ -24,8 +24,13 @@
 
 .container {
   display: flex;
-  justify-content: space-between;
+  /* justify-content: space-between; */
+  flex-direction: row;
 }
+  
+/* .container div {
+  flex-grow: 1; */
+/* } */
 
 @keyframes App-logo-spin {
   from {
