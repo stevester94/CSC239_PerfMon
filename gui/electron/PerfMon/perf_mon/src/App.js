@@ -1,7 +1,8 @@
 import React, { Component, TextInput } from 'react';
 import StevesTable from "./StevesTable.js"
 import DetailsReadout from "./DetailsReadout.js"
-import {Line} from 'react-chartjs-2';
+import StevesBarGraph from "./StevesBarGraph.js"
+import StevesPieGraph from "./StevesPieGraph.js"
 import './App.css';
 import 'react-table/react-table.css'
 // import { throws } from 'assert';
@@ -220,16 +221,31 @@ class NewApp extends Component {
 
     if(this.state.procs != null && this.state.current_button === "Processes")
     {
+      let table_data = this.generate_table_data();
+
+      // Num procs graph
       let num_procs = Object.keys(this.state.procs).length
       let procs_graph = <StevesStreamingGraph
         title="Num Procs"
         label={this.num_received} 
         data_point={num_procs} 
         max_data_points={5}/>;
-      components.push(procs_graph);
+
+      // Data table
+      let table = <StevesTable table_data={table_data}/>;
+
+      return (
+        <>
+          <div className="container">
+            <div>{procs_graph}</div>
+            <div><DetailsReadout details={["jejjjjjjjjjjjjj", "kek"]}/></div>
+          </div>
+          <div>{table}</div>
+        </>
+      )
     }
     
-    return components;
+    return;
   }
 
   build_disks_page()
@@ -239,30 +255,57 @@ class NewApp extends Component {
     if(this.state.disks != null && this.state.current_button == "Disks")
     {
       let num_disks = Object.keys(this.state.disks).length
-      let disks_graph = <StevesStreamingGraph
-        title="Num Disks"
-        label={this.num_received} 
-        data_point={num_disks} 
-        max_data_points={5}/>;
+      let table_data = this.generate_table_data();
+      
+      // Disk usage bar graph
+      let title = "Disk Usage"
+      let data = [];
+      let labels = [];
+      for(var disk of table_data)
+      {
+        labels.push(disk.disk_name);
+        data.push(disk.sectors_written);
+      }
+
+      let disks_graph = <StevesBarGraph title={title} labels={labels} data={data}/>
       components.push(disks_graph);
+
+      // Data table
+      let table = <StevesTable table_data={table_data}/>;
+      components.push(table);
+
+      return (
+        <>
+          <div className="container">
+            <div>{disks_graph}</div>
+            <div><DetailsReadout details={["jejjjjjjjjjjjjj", "kek"]}/></div>
+          </div>
+          <div>{table}</div>
+        </>
+      );
     }
 
-    return components;
+    return;
+  }
+
+  build_system_page()
+  {
+    // return <StevesPieGraph />
   }
 
   render() {
     let streaming_graph;
     let table;
     let table_data = this.generate_table_data();
-    if(this.state.procs != null)
-    {
-      streaming_graph = <StevesStreamingGraph
-                        title="Num filtered data"
-                        label={this.num_received} 
-                        data_point={table_data.length} 
-                        max_data_points={5}/>;
-      table           = <StevesTable table_data={table_data}/>;
-    }
+    // if(this.state.procs != null)
+    // {
+    //   streaming_graph = <StevesStreamingGraph
+    //                     title="Num filtered data"
+    //                     label={this.num_received} 
+    //                     data_point={table_data.length} 
+    //                     max_data_points={5}/>;
+    //   table           = <StevesTable table_data={table_data}/>;
+    // }
 
     return (
       <div>
@@ -270,20 +313,13 @@ class NewApp extends Component {
           return <button onClick={this.handleChildClick.bind(this, button_data.name)}>{button_data.name}</button>
         }.bind(this)) }
 
-      <input
-        onKeyPress={this.handleFilterTextEnter.bind(this)} onChange={this.handleFilterTextChange.bind(this)} placeholder="Filter string" type="text"
-      />
-        
-        <div className="container">
-          <div>{this.build_procs_page()}</div>
-          <div>{this.build_disks_page()}</div>
-          <div>{streaming_graph}</div>
-          <div><DetailsReadout details={["jejjjjjjjjjjjjj", "kek"]}/></div>
-        </div>​
-
-        {/* {streaming_graph} */}
-        {table}
-        
+        <input
+          onKeyPress={this.handleFilterTextEnter.bind(this)} onChange={this.handleFilterTextChange.bind(this)} placeholder="Filter string" type="text"
+        />
+          
+        {this.build_procs_page()}
+        {this.build_disks_page()}
+        {this.build_system_page()}
       </div>
     );
   }
