@@ -37,6 +37,8 @@ class NewApp extends Component {
 
     // The state of this class will hold the raw objects that are sent from the distributor
     // Further processing will occur on demand when feeding consumers
+    // State is only truely updated for the currently selected button
+    // Other states are updated, but not through the actual setState, so render is not fired needlessly
     // Message handlers
     ipcRenderer.on('msg_procs', function(event, arg) {
       console.log("Renderer received following msg_id: " + "msg_procs");
@@ -216,7 +218,7 @@ class NewApp extends Component {
   {
     let components = [];
 
-    if(this.state.procs != null)
+    if(this.state.procs != null && this.state.current_button === "Processes")
     {
       let num_procs = Object.keys(this.state.procs).length
       let procs_graph = <StevesStreamingGraph
@@ -234,7 +236,7 @@ class NewApp extends Component {
   {
     let components = [];
 
-    if(this.state.disks != null)
+    if(this.state.disks != null && this.state.current_button == "Disks")
     {
       let num_disks = Object.keys(this.state.disks).length
       let disks_graph = <StevesStreamingGraph

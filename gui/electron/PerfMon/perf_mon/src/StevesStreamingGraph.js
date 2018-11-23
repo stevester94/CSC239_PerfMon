@@ -46,8 +46,8 @@ class StevesStreamingGraph extends Component {
     constructor()
     {
         super();
-        this.data_points = [0,10,100];
-        this.labels = [1,2,3];
+        this.data_points = [];
+        this.labels = [];
 
         this.data = {
             labels: this.labels,
