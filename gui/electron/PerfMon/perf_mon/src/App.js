@@ -212,27 +212,56 @@ class NewApp extends Component {
     return table_data;
   }
 
+  build_procs_page()
+  {
+    let components = [];
+
+    if(this.state.procs != null)
+    {
+      let num_procs = Object.keys(this.state.procs).length
+      let procs_graph = <StevesStreamingGraph
+        title="Num Procs"
+        label={this.num_received} 
+        data_point={num_procs} 
+        max_data_points={5}/>;
+      components.push(procs_graph);
+    }
+    
+    return components;
+  }
+
+  build_disks_page()
+  {
+    let components = [];
+
+    if(this.state.disks != null)
+    {
+      let num_disks = Object.keys(this.state.disks).length
+      let disks_graph = <StevesStreamingGraph
+        title="Num Disks"
+        label={this.num_received} 
+        data_point={num_disks} 
+        max_data_points={5}/>;
+      components.push(disks_graph);
+    }
+
+    return components;
+  }
+
   render() {
     let streaming_graph;
     let table;
     let table_data = this.generate_table_data();
-
-    if(this.state.current_button === "Processes" && this.state.procs != null)
+    if(this.state.procs != null)
     {
       streaming_graph = <StevesStreamingGraph
-                          title="Num Procs"
-                          label={this.num_received} 
-                          data_point={table_data.length} 
-                          max_data_points={5}/>;
-      table           = <StevesTable table_data={table_data}/>;
-    }
-    else
-    {
-      streaming_graph = <StevesStreamingGraph label={this.num_received} data_point={this.num_received*this.num_received} max_data_points={10}/>;
+                        title="Num filtered data"
+                        label={this.num_received} 
+                        data_point={table_data.length} 
+                        max_data_points={5}/>;
       table           = <StevesTable table_data={table_data}/>;
     }
 
-    console.log(this.state.filter_text);
     return (
       <div>
         { this.state.buttons.map(function(button_data) {
@@ -242,9 +271,10 @@ class NewApp extends Component {
       <input
         onKeyPress={this.handleFilterTextEnter.bind(this)} onChange={this.handleFilterTextChange.bind(this)} placeholder="Filter string" type="text"
       />
-
+        
         <div className="container">
-          <div>{streaming_graph}</div>
+          <div>{this.build_procs_page()}</div>
+          <div>{this.build_disks_page()}</div>
           <div>{streaming_graph}</div>
           <div><DetailsReadout details={["jejjjjjjjjjjjjj", "kek"]}/></div>
         </div>​

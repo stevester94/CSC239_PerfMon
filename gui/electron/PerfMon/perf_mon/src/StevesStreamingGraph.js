@@ -61,9 +61,10 @@ class StevesStreamingGraph extends Component {
         }
     }
     render() {
-        const {data_point, label, max_data_points} = this.props;
+        const {data_point, label, max_data_points, title} = this.props;
         this.data_points.push(data_point);
         this.labels.push(label);
+        this.data.datasets[0].label = title;
 
         // Since we only receive one data point at a time, only need to pop one element from front
         if(this.data_points.length > max_data_points)
