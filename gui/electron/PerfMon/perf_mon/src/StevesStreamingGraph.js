@@ -1,6 +1,6 @@
 import {Line} from 'react-chartjs-2';
 import 'react-table/react-table.css';
-import React, { PureComponent } from 'react';
+import React, { Component } from 'react';
 
 
 
@@ -42,7 +42,7 @@ var options= {
     }
 };
 
-class StevesStreamingGraph extends PureComponent {
+class StevesStreamingGraph extends Component {
     constructor()
     {
         super();

@@ -1,9 +1,9 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import ReactTable from "react-table";
 
 import 'react-table/react-table.css'
 
-class StevesTable extends Component {
+class StevesTable extends PureComponent {
     // props = {
     //   table_data : null,
     // };
@@ -31,7 +31,7 @@ class StevesTable extends Component {
     render() {
       console.log("StevesTable rendering!");
       const { table_data } = this.props;
-      if(table_data == null)
+      if(table_data == null || table_data.length == 0)
       {
         console.log("StevesTable got no data")
         return (<div>no data</div>);

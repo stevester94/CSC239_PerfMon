@@ -5,7 +5,7 @@ class DetailsReadout extends Component {
         const {details} = this.props;
 
         return (
-            <ul class="DetailsReadout">
+            <ul className="DetailsReadout">
                 { details.map(function(detail) {
                     return <li>{detail}</li>
                 }) }
