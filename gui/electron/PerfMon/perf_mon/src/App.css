@@ -32,6 +32,10 @@
   flex-grow: 1; */
 /* } */
 
+.selected {
+  color: red;
+}
+
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);

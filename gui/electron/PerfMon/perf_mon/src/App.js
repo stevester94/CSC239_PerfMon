@@ -18,12 +18,12 @@ class NewApp extends Component {
     cpus: null,
     system: null,
     network: {jej: "kek"},
-    buttons: [
-      {name: "Processes"},
-      {name: "Disks"},
-      {name: "CPUs"},
-      {name: "System"},
-      {name: "Network"}
+    buttons: [ // Beware, active is only used for theming of the button
+      {name: "Processes", active: true},
+      {name: "Disks", active: false},
+      {name: "CPUs", active: false},
+      {name: "System", active: false},
+      {name: "Network", active: false}
     ],
     current_button: "Processes",
     filter_text: "",
@@ -40,7 +40,6 @@ class NewApp extends Component {
     super();
 
     // In renderer process (web page).
-    this.num_received = 0;
 
     // The state of this class will hold the raw objects that are sent from the distributor
     // Further processing will occur on demand when feeding consumers
@@ -51,7 +50,6 @@ class NewApp extends Component {
       console.log("Renderer received following msg_id: " + "msg_procs");
       console.log("Current button " + this.state.current_button);
       console.log(this);
-      this.num_received++;
       if(this.state.current_button === "Processes")
       {
         console.log("Setting procs state");
@@ -135,10 +133,23 @@ class NewApp extends Component {
 
   handleChildClick(childData, event)
   {
-    console.log("Child clicked: " + String(childData));
+    for(var button of this.state.buttons)
+    {
+      if(button.name === String(childData))
+      {
+        button.active = true;
+      }
+      else
+      {
+        button.active = false;
+      }
+    }
+
     this.setState(prevState =>({
       current_button: String(childData)
     }));
+
+
   }
 
   handleFilterTextEnter(event)
@@ -383,7 +394,10 @@ class NewApp extends Component {
     return (
       <div>
         { this.state.buttons.map(function(button_data) {
-          return <button onClick={this.handleChildClick.bind(this, button_data.name)}>{button_data.name}</button>
+          return (
+            <button onClick={this.handleChildClick.bind(this, button_data.name)}
+               className={button_data.active ? "selected" : ""}>{button_data.name}</button>
+          )
         }.bind(this)) }
 
         <input

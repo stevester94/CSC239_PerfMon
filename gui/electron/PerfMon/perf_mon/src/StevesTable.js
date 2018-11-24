@@ -43,6 +43,7 @@ class StevesTable extends PureComponent {
             columns={this.get_column_representation(table_data[0])}
             defaultPageSize={table_data.length}
             className="-striped -highlight"
+            showPagination={false}
           />
         </div>
       );
