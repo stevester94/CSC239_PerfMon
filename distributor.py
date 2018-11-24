@@ -281,7 +281,7 @@ class Distributor(threading.Thread):
         self.send_procs()
         self.send_system()
         self.send_cpus()
-        self.send_net()
+        # self.send_net() # Ignore net for now
 
     def run(self):
         while True:
@@ -420,7 +420,7 @@ def distill_network():
 
 
 def distributor_test():
-    distributor = Distributor(9001, 1) # port 9001, sleep time
+    distributor = Distributor(9001, 10) # port 9001, sleep time
 
     distributor.run()
 

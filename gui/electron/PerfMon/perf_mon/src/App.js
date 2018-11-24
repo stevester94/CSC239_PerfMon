@@ -97,7 +97,7 @@ class NewApp extends Component {
       }
       else
       {
-        this.state.cpus = arg;
+        this.state.system = arg;
       }
     }.bind(this));
 
@@ -254,7 +254,6 @@ class NewApp extends Component {
 
     if(this.state.disks != null && this.state.current_button == "Disks")
     {
-      let num_disks = Object.keys(this.state.disks).length
       let table_data = this.generate_table_data();
       
       // Disk usage bar graph
@@ -268,11 +267,9 @@ class NewApp extends Component {
       }
 
       let disks_graph = <StevesBarGraph title={title} labels={labels} data={data}/>
-      components.push(disks_graph);
 
       // Data table
       let table = <StevesTable table_data={table_data}/>;
-      components.push(table);
 
       return (
         <>
@@ -290,23 +287,60 @@ class NewApp extends Component {
 
   build_system_page()
   {
-    // return <StevesPieGraph />
+    if(this.state.system != null && this.state.current_button == "System")
+    {
+      let details;
+
+      details = Object.keys(this.state.system).map(function(detail_key) {
+        return detail_key + ": " + String(this.state.system[detail_key]);
+      }.bind(this));
+
+      let mem_usage_pie;
+      let labels = ["used", "free"];
+      let data = [this.state.system.total_kbytes - this.state.system.free_kbytes, this.state.system.free_kbytes];
+      let title = "Memory usage";
+
+      return (
+        <>
+          <div className="container">
+            <div><StevesPieGraph labels={labels} data={data} title={title} /></div>
+            <div><DetailsReadout details={details} /></div>
+          </div>
+        </>
+      );
+    }
+  }
+
+  build_cpu_page()
+  {
+    if(this.state.cpus != null && this.state.current_button == "CPUs")
+    {
+      let table_data = this.generate_table_data();
+      let labels = [];
+      let data   = [];
+      let title = "CPU Utilization";
+
+      for(var cpu of table_data)
+      {
+        labels.push(cpu.logical_cpu);
+        data.push(cpu.interval_utilization);
+      }
+      let cpu_util_graph = <StevesBarGraph title={title} labels={labels} data={data} max_y={1}/>
+      return (
+        <>
+          <div className="container">
+            <div>{cpu_util_graph}</div>
+            <div><DetailsReadout details={["jejjjjjjjjjjjjj", "kek"]}/></div>
+          </div>
+          <StevesTable table_data={table_data}/>
+        </>
+      );
+    }
+
+    return;
   }
 
   render() {
-    let streaming_graph;
-    let table;
-    let table_data = this.generate_table_data();
-    // if(this.state.procs != null)
-    // {
-    //   streaming_graph = <StevesStreamingGraph
-    //                     title="Num filtered data"
-    //                     label={this.num_received} 
-    //                     data_point={table_data.length} 
-    //                     max_data_points={5}/>;
-    //   table           = <StevesTable table_data={table_data}/>;
-    // }
-
     return (
       <div>
         { this.state.buttons.map(function(button_data) {
@@ -320,6 +354,7 @@ class NewApp extends Component {
         {this.build_procs_page()}
         {this.build_disks_page()}
         {this.build_system_page()}
+        {this.build_cpu_page()}
       </div>
     );
   }

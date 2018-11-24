@@ -17,20 +17,20 @@ var options= {
     intersect: true
     },
     scales: {
-    xAxes: [{
-        display: true,
-        scaleLabel: {
-        display: false,
-        labelString: 'Month'
-        }
-    }],
-    yAxes: [{
-        display: true,
-        scaleLabel: {
-        display: false,
-        labelString: 'Value'
-        }
-    }]
+        xAxes: [{
+            display: true,
+            scaleLabel: {
+            display: false,
+            labelString: 'Month'
+            }
+        }],
+        yAxes: [{
+            display: true,
+            scaleLabel: {
+            display: false,
+            labelString: 'Value'
+            }
+        }]
     }
 };
 
@@ -52,6 +52,11 @@ class StevesBarGraph extends Component {
         data.labels = this.props.labels;
         data.datasets[0].data = this.props.data;
         data.datasets[0].label = this.props.title;
+        if(this.props.max_y != null)
+        {
+            options.scales.yAxes[0].ticks = {}
+            options.scales.yAxes[0].ticks.suggestedMax = this.props.max_y;
+        }
         return (
             <Bar data={data} options={options} redraw={true}/>
         );
