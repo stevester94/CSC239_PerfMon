@@ -28,6 +28,9 @@ class Distiller:
         self.prev_cpu = None
         self.cpu_payload = {} # Will be a dict of dicts with disk as primary key
 
+        self.prev_interrupts = None
+        self.prev_context_switches = None
+
         self.prev_net_metrics = None
         # net_metrics are a simple dict of fields
 
@@ -115,7 +118,7 @@ class Distiller:
         return self.disk_payload
 
 
-    def distill_system(self):
+    def distill_system(self, interval):
         desired_keys = [
             'free_kbytes',
             'total_kbytes',
@@ -124,6 +127,7 @@ class Distiller:
             "interrupts",
             "uptime_secs"
         ]
+        # And also, context_switches_per_second, interrupts_per_second
 
         mem_info = get_meminfo()
         interrupts = get_interrupts_serviced()
@@ -134,6 +138,13 @@ class Distiller:
         mem_info["interrupts"] = interrupts
         mem_info["uptime_secs"] = get_uptime()
 
+        if self.prev_context_switches  != None:
+            mem_info["context_switches_per_second"] = get_switches_per_second(self.prev_context_switches, context_switches, interval)
+        if self.prev_interrupts != None:
+            mem_info["interrupts_per_second"] = get_interrupts_per_second(self.prev_interrupts, interrupts, interval)
+
+        self.prev_context_switches = context_switches
+        self.prev_interrupts = interrupts
         self.system_payload = mem_info
         return self.system_payload
 
@@ -255,7 +266,7 @@ class Distributor(threading.Thread):
         # Prime the pump
         self.distiller.distill_disks(self.interval)
         self.distiller.distill_procs()
-        self.distiller.distill_system()
+        self.distiller.distill_system(self.interval)
         self.distiller.distill_cpus()
     
     # Will jsonify, payload must be a dict of {msg_id, data}
@@ -291,7 +302,7 @@ class Distributor(threading.Thread):
     def send_system(self):
         payload = {}
         payload["msg_id"] = "msg_system"
-        payload["data"] = self.distiller.distill_system()
+        payload["data"] = self.distiller.distill_system(self.interval)
         self.send_payload(payload)
         
     def send_cpus(self):
@@ -428,7 +439,7 @@ def distiller_test():
     distiller.distill_procs()
     distiller.distill_procs()
 
-    distiller.distill_system()
+    distiller.distill_system(5)
 
     distiller.distill_cpus()
     sleep(5)

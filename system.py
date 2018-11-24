@@ -65,6 +65,12 @@ def get_interrupts_serviced():
     f.close()
     return int(split_line[1])
 
+def get_interrupts_per_second(prev, curr, interval):
+    return float(curr - prev)/interval
+
+def get_switches_per_second(prev, curr, interval):
+    return float(curr - prev)/interval
+
 
 def get_context_switches():
     f = open("/proc/stat", "r")

@@ -301,22 +301,39 @@ class NewApp extends Component {
   {
     if(this.state.system != null && this.state.current_button == "System")
     {
-      let details;
 
-      details = Object.keys(this.state.system).map(function(detail_key) {
+      // Mem usage pie chart
+      let mem_labels = ["used", "free"];
+      let mem_data = [this.state.system.total_kbytes - this.state.system.free_kbytes, this.state.system.free_kbytes];
+      let mem_title = "Memory usage";
+
+      // context switches per second graph
+      let context_label = this.num_received;
+      let context_data   = this.state.system.context_switches_per_second;
+      let context_title  = "Context Switches per second";
+      delete this.state.system.context_switches_per_second; // Perhaps delete from the details table instead?
+
+      // interrupts per second graph
+      let interrupts_label = this.num_received;
+      let interrupts_data  = this.state.system.interrupts_per_second;
+      let interrupts_title = "Interrupts per second";
+      delete this.state.system.interrupts_per_second;
+
+
+      let details = Object.keys(this.state.system).map(function(detail_key) {
         return detail_key + ": " + String(this.state.system[detail_key]);
       }.bind(this));
 
-      let mem_usage_pie;
-      let labels = ["used", "free"];
-      let data = [this.state.system.total_kbytes - this.state.system.free_kbytes, this.state.system.free_kbytes];
-      let title = "Memory usage";
 
       return (
         <>
           <div className="container">
-            <div><StevesPieGraph labels={labels} data={data} title={title} /></div>
+            <div><StevesPieGraph labels={mem_labels} data={mem_data} title={mem_title} /></div>
             <div><DetailsReadout details={details} /></div>
+          </div>
+          <div className="container">
+            <div><StevesStreamingGraph data_point={context_data} label={context_label} title={context_title} max_data_points={5}/></div>
+            <div><StevesStreamingGraph data_point={interrupts_data} label={interrupts_label} title={interrupts_title} max_data_points={5}/></div>
           </div>
         </>
       );
