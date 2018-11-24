@@ -462,7 +462,7 @@ def distill_network():
 
 
 def distributor_test():
-    distributor = Distributor(9001, 10) # port 9001, sleep time
+    distributor = Distributor(9001, 5) # port 9001, sleep time
 
     distributor.run()
 

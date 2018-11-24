@@ -7,9 +7,20 @@ import './App.css';
 import 'react-table/react-table.css'
 // import { throws } from 'assert';
 import StevesStreamingGraph from "./StevesStreamingGraph.js"
+import StevesAdaptiveStreamingG from "./StevesAdaptiveStreamingG.js"
 
 
 const { ipcRenderer } = window.require('electron');
+
+var COLORS = {
+	RED: 'rgb(255, 99, 132)',
+	ORANGE: 'rgb(255, 159, 64)',
+	YELLOW: 'rgb(255, 205, 86)',
+	GREEN: 'rgb(75, 192, 192)',
+	BLUE: 'rgb(54, 162, 235)',
+	PURPLE: 'rgb(153, 102, 255)',
+	GREY: 'rgb(231,233,237)'
+};
 
 class NewApp extends Component {
   state = {
@@ -18,12 +29,12 @@ class NewApp extends Component {
     cpus: null,
     system: null,
     network: {jej: "kek"},
-    buttons: [ // Beware, active is only used for theming of the button
-      {name: "Processes", active: true},
-      {name: "Disks", active: false},
-      {name: "CPUs", active: false},
-      {name: "System", active: false},
-      {name: "Network", active: false}
+    buttons: [ // Beware, selected is only used for theming of the button
+      {name: "Processes", selected: true},
+      {name: "Disks", selected: false},
+      {name: "CPUs", selected: false},
+      {name: "System", selected: false},
+      {name: "Network", selected: false}
     ],
     current_button: "Processes",
     filter_text: "",
@@ -137,11 +148,11 @@ class NewApp extends Component {
     {
       if(button.name === String(childData))
       {
-        button.active = true;
+        button.selected = true;
       }
       else
       {
-        button.active = false;
+        button.selected = false;
       }
     }
 
@@ -288,16 +299,23 @@ class NewApp extends Component {
       }
 
       // TODO: Too fuckin lazy to do this shit, streaming graph doesn't support multiple datasets to be streamed
-      // // Reads per second line graph
-      // let reads_title = "Reads per second";
-      // let reads_data = [];
-      // let reads_labels [];
-      // for(var disk of table_data)
-      // {
-      //   reads_data.push()
-      // }
+      // Reads per second line graph
+      let reads_writes_title = "Total Reads/Writes per second";
+      let reads_writes_data = [0,0];
+      let reads_writes_labels = ["Reads", "Writes"];
+      let reads_writes_colors = [COLORS.BLUE, COLORS.RED];
+      let reads_writes_x_index = this.state.time_of_last_data;
+      for(var disk of table_data)
+      {
+        reads_writes_data[0] += disk.reads_per_second;
+        reads_writes_data[1] += disk.writes_per_second;
+        // delete disk.writes_per_second;
+        // delete disk.reads_per_second;
+      }
 
-
+      // console.log("reads_data");
+      // console.log(reads_data);
+      // console.log(table_data);
 
       let disks_graph = <StevesBarGraph title={usage_title} labels={usage_labels} data={usage_data} max_y={1.0}/>
 
@@ -308,9 +326,18 @@ class NewApp extends Component {
         <>
           <div className="container">
             <div>{disks_graph}</div>
-            <div><DetailsReadout details={["jejjjjjjjjjjjjj", "kek"]}/></div>
+            {/* <div className="flex-grower"> */}
+            <div>
+              <StevesAdaptiveStreamingG 
+                  // title={reads_writes_title} 
+                  data_points={reads_writes_data} 
+                  data_labels={reads_writes_labels} 
+                  data_label_colors={reads_writes_colors}
+                  x_index={reads_writes_x_index}
+                  max_data_points={5}/></div>
           </div>
           <div>{table}</div>
+
         </>
       );
     }
@@ -396,7 +423,7 @@ class NewApp extends Component {
         { this.state.buttons.map(function(button_data) {
           return (
             <button onClick={this.handleChildClick.bind(this, button_data.name)}
-               className={button_data.active ? "selected" : ""}>{button_data.name}</button>
+               className={button_data.selected ? "selected" : ""}>{button_data.name}</button>
           )
         }.bind(this)) }
 
