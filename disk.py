@@ -1,5 +1,6 @@
 #! /usr/bin/python
 import re
+import os
 from utils import *
 
 # Main data product is list of these
@@ -47,6 +48,20 @@ def calc_disk_info_rates(prev_list,curr_list,interval):
 
     return disk_interval_rates
 
+# Return each disk % used as reported by df
+# return array of tuples
+# (<device name>, <percent free as float>)
+def get_disk_used_space():
+    raw_dh_stdout = os.popen("df | grep ^/dev/").read()
+    split_lines = raw_dh_stdout.split("\n")
+    devices = []
+    for line in split_lines:
+        if line != None and line != '':
+            separated = line.split()
+            device = (separated[0], float(separated[4].strip("%"))/100 )
+            devices.append(device)
+    
+    return devices
 
 if __name__ == "__main__":
-    print get_disk_reads()
+    print get_disk_used_space()

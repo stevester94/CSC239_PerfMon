@@ -70,6 +70,7 @@ class Distiller:
             "sectors_written",
             "writes_completed"
         ] # With disk name as primary key
+        # and "percent_used"
 
         # First element is the key in the dict from disk.py, second is what its renamed to in payload
         second_desired_keys = [
@@ -79,17 +80,26 @@ class Distiller:
             ("writes_completed", "writes_per_second")
         ] # Still With disk name as primary key, all in the same overall dict
 
-
         self.disk_payload = {}
+        disks_free_percent = get_disk_used_space()
 
-
+        # Get standard snapshot info, and mix in percent free if possible
         for disk in disk_info:
             cur_disk_dict = {}
 
             for k in desired_keys:
                 cur_disk_dict[k] = disk[k]
+
+            for disk_free_info in disks_free_percent:
+                if disk["name"] in disk_free_info[0]:
+                    cur_disk_dict["percent_used"] = disk_free_info[1]
+            # Check if we found one, if not just set it to 0
+            if not "percent_used" in cur_disk_dict:
+                cur_disk_dict["percent_used"] = 0
+
             self.disk_payload[disk["name"]] = cur_disk_dict
         
+        # Get rate information if possible
         if self.prev_disks != None:
             rates = calc_disk_info_rates(self.prev_disks, disk_info, interval)
             for disk in rates:
@@ -97,6 +107,8 @@ class Distiller:
                     source_key = k[0]
                     transmuted_key = k[1]
                     self.disk_payload[disk["name"]][transmuted_key] = disk[source_key]
+        # get percent free if possible
+
 
         
         self.prev_disks = disk_info
