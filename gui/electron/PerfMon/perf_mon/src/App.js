@@ -32,13 +32,13 @@ class NewApp extends Component {
     buttons: [ // Beware, selected is only used for theming of the button
       {name: "Processes", selected: true},
       {name: "Disks", selected: false},
-      {name: "CPUs", selected: false},
       {name: "System", selected: false},
       {name: "Network", selected: false}
     ],
     current_button: "Processes",
     filter_text: "",
-    time_of_last_data: null
+    time_of_last_data: null,
+    cpus_or_system_received: false // Need to synchronize these two because the state is getting update too fast
   };
 
   get_current_time()
@@ -92,30 +92,50 @@ class NewApp extends Component {
 
     ipcRenderer.on('msg_cpus', function(event, arg) {
       console.log("Renderer received following msg_id: " + "msg_cpus");
-      if(this.state.current_button === "CPUs")
+      if(this.state.cpus_or_system_received)
       {
-        this.setState(prevState =>({
-          cpus: arg,
-          time_of_last_data: this.get_current_time()
-        }));
+        if(this.state.current_button === "System")
+        {
+          this.setState(prevState =>({
+            cpus: arg,
+            time_of_last_data: this.get_current_time(),
+            cpus_or_system_received: false // Reset for next volley
+          }));
+        }
+        else 
+        {
+          this.state.cpus = arg;
+          this.state.cpus_or_system_received = false;
+        }
       }
       else
       {
+        this.state.cpus_or_system_received = true;
         this.state.cpus = arg;
       }
     }.bind(this));
 
     ipcRenderer.on('msg_system', function(event, arg) {
       console.log("Renderer received following msg_id: " + "msg_system");
-      if(this.state.current_button === "System")
+      if(this.state.cpus_or_system_received)
       {
-        this.setState(prevState =>({
-          system: arg,
-          time_of_last_data: this.get_current_time()
-        }));
+        if(this.state.current_button === "System")
+        {
+          this.setState(prevState =>({
+            system: arg,
+            time_of_last_data: this.get_current_time(),
+            cpus_or_system_received: false // Reset for next volley
+          }));
+        }
+        else
+        {
+          this.state.cpus_or_system_received = false;
+          this.state.system = arg;
+        }
       }
       else
       {
+        this.state.cpus_or_system_received = true;
         this.state.system = arg;
       }
     }.bind(this));
@@ -226,18 +246,13 @@ class NewApp extends Component {
         table_data = this.filter_array_based_on_keys(table_data);
       }
     }
-    if(this.state.current_button === "CPUs")
+    if(this.state.current_button === "System")
     {
       if(this.state.cpus != null)
       {
         table_data = this.convert_dict_to_array(this.state.cpus, "logical_cpu");
         table_data = this.filter_array_based_on_keys(table_data);
       }
-    }
-    if(this.state.current_button === "System")
-    {
-      
-      table_data = [this.state.system]; // Make it an array of 1 to fit the model
     }
     if(this.state.current_button === "Network")
     {
@@ -372,10 +387,20 @@ class NewApp extends Component {
         return detail_key + ": " + String(this.state.system[detail_key]);
       }.bind(this));
 
+      let table_data = this.generate_table_data();
+      let cpu_labels = [];
+      let cpu_data   = [];
+      let cpu_title = "CPU Utilization";
 
+      for(var cpu of table_data)
+      {
+        cpu_labels.push(cpu.logical_cpu);
+        cpu_data.push(cpu.interval_utilization);
+      }
       return (
         <>
           <div className="container">
+            <div><StevesBarGraph title={cpu_title} labels={cpu_labels} data={cpu_data} max_y={1}/></div>
             <div><StevesPieGraph labels={mem_labels} data={mem_data} title={mem_title} /></div>
             <div><DetailsReadout details={details} /></div>
           </div>
@@ -383,39 +408,51 @@ class NewApp extends Component {
             <div><StevesStreamingGraph data_point={context_data} label={context_label} title={context_title} max_data_points={5}/></div>
             <div><StevesStreamingGraph data_point={interrupts_data} label={interrupts_label} title={interrupts_title} max_data_points={5}/></div>
           </div>
-        </>
-      );
-    }
-  }
-
-  build_cpu_page()
-  {
-    if(this.state.cpus != null && this.state.current_button == "CPUs")
-    {
-      let table_data = this.generate_table_data();
-      let labels = [];
-      let data   = [];
-      let title = "CPU Utilization";
-
-      for(var cpu of table_data)
-      {
-        labels.push(cpu.logical_cpu);
-        data.push(cpu.interval_utilization);
-      }
-      let cpu_util_graph = <StevesBarGraph title={title} labels={labels} data={data} max_y={1}/>
-      return (
-        <>
-          <div className="container">
-            <div>{cpu_util_graph}</div>
-            <div><DetailsReadout details={["jejjjjjjjjjjjjj", "kek"]}/></div>
-          </div>
           <StevesTable table_data={table_data}/>
         </>
       );
-    }
 
-    return;
+      return (
+        <>
+          <div className="container">
+
+          </div>
+          <div className="container">
+
+          </div>
+        </>
+      );
+    }
   }
+
+  // build_cpu_page()
+  // {
+  //   if(this.state.cpus != null && this.state.current_button == "CPUs")
+  //   {
+  //     let table_data = this.generate_table_data();
+  //     let labels = [];
+  //     let data   = [];
+  //     let title = "CPU Utilization";
+
+  //     for(var cpu of table_data)
+  //     {
+  //       labels.push(cpu.logical_cpu);
+  //       data.push(cpu.interval_utilization);
+  //     }
+  //     let cpu_util_graph = <StevesBarGraph title={title} labels={labels} data={data} max_y={1}/>
+  //     return (
+  //       <>
+  //         <div className="container">
+  //           <div>{cpu_util_graph}</div>
+  //           <div><DetailsReadout details={["jejjjjjjjjjjjjj", "kek"]}/></div>
+  //         </div>
+  //         <StevesTable table_data={table_data}/>
+  //       </>
+  //     );
+  //   }
+
+  //   return;
+  // }
 
   render() {
     return (
@@ -434,7 +471,6 @@ class NewApp extends Component {
         {this.build_procs_page()}
         {this.build_disks_page()}
         {this.build_system_page()}
-        {this.build_cpu_page()}
       </div>
     );
   }
