@@ -34,6 +34,8 @@ class Distiller:
         self.prev_net_metrics = None
         # net_metrics are a simple dict of fields
 
+        self.prev_nic_metrics = None
+
     # This function distills the procs into what will be used by the frontend
     # Will probably break this apart, but will serve as an example for now
     def distill_procs(self):
@@ -174,16 +176,50 @@ class Distiller:
         return self.cpu_payload
 
     def distill_network(self, interval):
-        net_metric_keys = ["ip_forwarding", "ip_in_receive", "ip_out_request", 
-                "tcp_active_opens", "tcp_current_established", "tcp_in_segs", "tcp_out_segs", 
-                "udp_in_datagram", "udp_out_datagram"]
+        net_metric_keys = ["ip_forwarding",
+            "ip_in_receive",
+            "ip_out_request",
+            "tcp_active_opens",
+            "tcp_current_established",
+            "tcp_in_segs",
+            "tcp_out_segs",
+            "udp_in_datagram",
+            "udp_out_datagram"
+        ] # Net metric is simple dict
+
+        # Input key, to be renamed to the second in tuple
+        net_metric_rate_keys = [
+            ("ip_forwarding", "ip_forwarding_per_second"),
+            ("ip_in_receive", "ip_in_receive_per_second"),
+            ("ip_out_request", "ip_out_request_per_second"),
+            ("tcp_active_opens", "tcp_active_opens_per_second"),
+            ("tcp_current_established", "tcp_current_established_per_second"),
+            ("tcp_in_segs", "tcp_in_segs_per_second"),
+            ("tcp_out_segs", "tcp_out_segs_per_second"),
+            ("udp_in_datagram", "udp_in_datagram_per_second"),
+            ("udp_out_datagram", "udp_out_datagram_per_second")
+        ] # Net metric is simple dict
+
+        nic_metric_keys = [
+            "bytes_recvd",
+            "packets_recvd",
+            "bytes_sent",
+            "packets_sent"
+        ] # Each interface is entry in dict, each with above keys
+
+        nic_metric_rate_keys = [
+            ("bytes_recvd", "bytes_recvd_per_second"),
+            ("packets_recvd", "packets_recvd_per_second"),
+            ("bytes_sent", "bytes_sent_per_second"),
+            ("packets_sent", "packets_sent_per_second")
+        ] # Each interface is entry in dict, each with above keys
 
         tcp_info_keys = [
             "local_address",
             "rem_address",
             "username",
             "program"
-        ]
+        ] # Dict for each socket, with above keys
 
         udp_info_keys = [
             "local_address",
@@ -191,7 +227,7 @@ class Distiller:
             "username",
             "program",
             "inode"
-        ]
+        ] # Dict for each socket, with above keys
 
 
         net_metric_rates = None
@@ -199,7 +235,6 @@ class Distiller:
         net_metrics = None
         filtered_net_metrics = None
 
-        print "get_net_metrics()"
         # Calc metric interval if applicable
         net_metrics = get_net_metrics()
         if self.prev_net_metrics != None:
@@ -214,8 +249,8 @@ class Distiller:
         # Do the same if we have the rate based data
         if net_metric_rates != None:
             filtered_net_metric_rates = {}
-            for k in net_metric_keys:
-                filtered_net_metric_rates[k] = net_metric_rates[k]
+            for k in net_metric_rate_keys:
+                filtered_net_metric_rates[k[1]] = net_metric_rates[k[0]]
 
         # OK, so there _can_ be multiple processes that write to the same inode (socket), but that is 
         # not common.
@@ -239,11 +274,32 @@ class Distiller:
             filtered_udp.append(socket_dict)
         # print "=================================================================================="
 
+        nic_metrics = get_nic_stats()
+        nic_metrics_payload = {}
+        for nic in nic_metrics:
+            nic_dict = {}
+            for k in nic_metric_keys:
+                nic_dict[k] = nic_metrics[nic][k]
+            nic_metrics_payload[nic_metrics[nic]["interface"]] = nic_dict
+        
+        nic_metrics_rates_payload = {}
+        if self.prev_nic_metrics != None:
+            nic_metrics_rates = calc_nic_rates(self.prev_nic_metrics, nic_metrics, interval)
+            for nic in nic_metrics_rates:
+                nic_dict = {}
+                for k in nic_metric_rate_keys:
+                    nic_dict[k[1]] = nic_metrics_rates[nic][k[0]]
+                nic_metrics_rates_payload[nic] = nic_dict
+        self.prev_nic_metrics = nic_metrics
+
+
         ret_dict = {}
         ret_dict["net_metric_rates"] = filtered_net_metric_rates
         ret_dict["tcp_info"] = filtered_tcp
         ret_dict["udp_info"] = filtered_udp
         ret_dict["net_metrics"] = filtered_net_metrics
+        ret_dict["nic_metrics"] = nic_metrics_payload
+        ret_dict["nic_metrics_rates"] = nic_metrics_rates_payload
 
         return ret_dict
 
@@ -322,7 +378,7 @@ class Distributor(threading.Thread):
         self.send_procs()
         self.send_system()
         self.send_cpus()
-        # self.send_net() # Ignore net for now
+        self.send_net() # Ignore net for now
 
     def run(self):
         while True:
@@ -454,10 +510,11 @@ def distiller_test():
 def distill_network():
     INTERVAL = 5
     distiller = Distiller()
+    distiller.distill_network(INTERVAL)
     while True:
-        pp.pprint(distiller.distill_network(INTERVAL))
         sleep(INTERVAL)
         pp.pprint(distiller.distill_network(INTERVAL))
+        # (distiller.distill_network(INTERVAL))
 
 
 

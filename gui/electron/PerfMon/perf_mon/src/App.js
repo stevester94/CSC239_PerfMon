@@ -411,48 +411,13 @@ class NewApp extends Component {
           <StevesTable table_data={table_data}/>
         </>
       );
-
-      return (
-        <>
-          <div className="container">
-
-          </div>
-          <div className="container">
-
-          </div>
-        </>
-      );
     }
   }
 
-  // build_cpu_page()
-  // {
-  //   if(this.state.cpus != null && this.state.current_button == "CPUs")
-  //   {
-  //     let table_data = this.generate_table_data();
-  //     let labels = [];
-  //     let data   = [];
-  //     let title = "CPU Utilization";
-
-  //     for(var cpu of table_data)
-  //     {
-  //       labels.push(cpu.logical_cpu);
-  //       data.push(cpu.interval_utilization);
-  //     }
-  //     let cpu_util_graph = <StevesBarGraph title={title} labels={labels} data={data} max_y={1}/>
-  //     return (
-  //       <>
-  //         <div className="container">
-  //           <div>{cpu_util_graph}</div>
-  //           <div><DetailsReadout details={["jejjjjjjjjjjjjj", "kek"]}/></div>
-  //         </div>
-  //         <StevesTable table_data={table_data}/>
-  //       </>
-  //     );
-  //   }
-
-  //   return;
-  // }
+  build_network_page()
+  {
+    
+  }
 
   render() {
     return (

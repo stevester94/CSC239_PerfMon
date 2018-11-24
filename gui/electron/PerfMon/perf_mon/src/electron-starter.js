@@ -52,7 +52,7 @@ server.bind(PORT, HOST);
 
 function createWindow() {
     // Create the browser window.
-    mainWindow = new BrowserWindow({width: 800, height: 600});
+    mainWindow = new BrowserWindow({width: 1275, height: 575});
 
     // mainWindow.webContents.on('did-finish-load', () => {
     //     mainWindow.webContents.send('procs-json-message', procs_json);

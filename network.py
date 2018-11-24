@@ -6,6 +6,11 @@ from proc import *
 import struct
 import socket
 
+hostname_cache = {
+    "127.0.0.1": "localhost",
+    "0.0.0.0"  : "localhost"
+}
+
 # Thanks stackoverflow!
 def translate_address_to_ipv4_string(input):
     addr_long = int(input, 16)
@@ -18,12 +23,21 @@ def parse_address_and_port(input):
     address = translate_address_to_ipv4_string(address)
     port = str(int(port, 16))
 
-    try:
-        address = socket.gethostbyaddr(address)[0]
-    except:
-        pass
+    # print address
+    hostname = address
+    if address in hostname_cache:
+        hostname = hostname_cache[address]
+        # print "hostname_cache hit: " + address + " -> " + hostname
 
-    return (address, port)
+    else:
+        try:
+            hostname = socket.gethostbyaddr(address)[0]
+            hostname_cache[address] = hostname
+            # print "hostname_cache miss: " + address + " -> " + hostname
+        except:
+            pass
+
+    return (hostname, port)
 
 def get_net_metrics():
     f = open("/proc/net/snmp")
@@ -80,6 +94,7 @@ def get_tcp_info():
     lines = search_all_lines_with_regex(f, r"\s*[0-9]+:")
 
     connections = []
+    dictified_procs = dictify_procs(get_all_complete_procs()) # Compute only once
     for index, l in enumerate(lines):
         only_data = re.search(r"\s*[0-9]+:\s*(.*)", l).group(1)
         separated_data = re.findall("\s*(\S*)\s*", only_data)
@@ -100,7 +115,7 @@ def get_tcp_info():
         d = dict(zip(keys, separated_data))
         d["username"] = get_username(d["uid"])
 
-        associated_procs = get_procs_from_inode(d["inode"], dictify_procs(get_all_complete_procs()))
+        associated_procs = get_procs_from_inode(d["inode"], dictified_procs)
         d["procs"] = associated_procs
         if len(associated_procs) > 0:
             d["program"] = associated_procs[0]["comm"]
@@ -121,6 +136,8 @@ def get_udp_info():
     lines = search_all_lines_with_regex(f, r"\s*[0-9]+:")
 
     connections = []
+    dictified_procs = dictify_procs(get_all_complete_procs())
+
     for index, l in enumerate(lines):
         only_data = re.search(r"\s*[0-9]+:\s*(.*)", l).group(1)
         separated_data = re.findall("\s*(\S*)\s*", only_data)
@@ -141,7 +158,7 @@ def get_udp_info():
 
         d = dict(zip(keys, separated_data))
         d["username"] = get_username(d["uid"])
-        associated_procs = get_procs_from_inode(d["inode"], dictify_procs(get_all_complete_procs()))
+        associated_procs = get_procs_from_inode(d["inode"], dictified_procs)
         d["procs"] = associated_procs
         if len(associated_procs) > 0:
             d["program"] = associated_procs[0]["comm"]
