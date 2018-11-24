@@ -31,8 +31,6 @@ class Distiller:
         self.prev_net_metrics = None
         # net_metrics are a simple dict of fields
 
-
-
     # This function distills the procs into what will be used by the frontend
     # Will probably break this apart, but will serve as an example for now
     def distill_procs(self):
@@ -63,7 +61,7 @@ class Distiller:
     
 
     # disk reads, block reads, disk writes, blocks written
-    def distill_disks(self):
+    def distill_disks(self, interval):
         disk_info = get_disk_info() # List of disks
 
         desired_keys = [
@@ -72,6 +70,15 @@ class Distiller:
             "sectors_written",
             "writes_completed"
         ] # With disk name as primary key
+
+        # First element is the key in the dict from disk.py, second is what its renamed to in payload
+        second_desired_keys = [
+            ("reads_completed", "reads_per_second"),
+                # ("sectors_read", "sectors_read_per_second"),
+                # ("sectors_written", "sectors_written_per_second"),
+            ("writes_completed", "writes_per_second")
+        ] # Still With disk name as primary key, all in the same overall dict
+
 
         self.disk_payload = {}
 
@@ -82,6 +89,17 @@ class Distiller:
             for k in desired_keys:
                 cur_disk_dict[k] = disk[k]
             self.disk_payload[disk["name"]] = cur_disk_dict
+        
+        if self.prev_disks != None:
+            rates = calc_disk_info_rates(self.prev_disks, disk_info, interval)
+            for disk in rates:
+                for k in second_desired_keys:
+                    source_key = k[0]
+                    transmuted_key = k[1]
+                    self.disk_payload[disk["name"]][transmuted_key] = disk[source_key]
+
+        
+        self.prev_disks = disk_info
         return self.disk_payload
 
 
@@ -223,7 +241,7 @@ class Distributor(threading.Thread):
         self.distiller = Distiller()
 
         # Prime the pump
-        self.distiller.distill_disks()
+        self.distiller.distill_disks(self.interval)
         self.distiller.distill_procs()
         self.distiller.distill_system()
         self.distiller.distill_cpus()
@@ -249,7 +267,7 @@ class Distributor(threading.Thread):
     def send_disks(self):
         payload = {}
         payload["msg_id"] = "msg_disks"
-        payload["data"] = self.distiller.distill_disks()
+        payload["data"] = self.distiller.distill_disks(self.interval)
         self.send_payload(payload)
 
     def send_procs(self):
@@ -285,8 +303,8 @@ class Distributor(threading.Thread):
 
     def run(self):
         while True:
-            self.send_all()
             sleep(self.interval)
+            self.send_all()
 
 
 
@@ -393,7 +411,7 @@ def validate_procs():
 def distiller_test():
     distiller = Distiller()
 
-    distiller.distill_disks()
+    distiller.distill_disks(5)
 
     distiller.distill_procs()
     distiller.distill_procs()
@@ -411,11 +429,12 @@ def distiller_test():
     pp.pprint(distiller.cpu_payload)
 
 def distill_network():
+    INTERVAL = 5
     distiller = Distiller()
     while True:
-        pp.pprint(distiller.distill_network(5))
-        sleep(5)
-        pp.pprint(distiller.distill_network(5))
+        pp.pprint(distiller.distill_network(INTERVAL))
+        sleep(INTERVAL)
+        pp.pprint(distiller.distill_network(INTERVAL))
 
 
 
