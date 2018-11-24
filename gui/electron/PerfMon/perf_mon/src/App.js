@@ -8,6 +8,7 @@ import 'react-table/react-table.css'
 // import { throws } from 'assert';
 import StevesStreamingGraph from "./StevesStreamingGraph.js"
 import StevesAdaptiveStreamingG from "./StevesAdaptiveStreamingG.js"
+import NetworkView from "./NetworkView.js"
 
 
 const { ipcRenderer } = window.require('electron');
@@ -28,7 +29,12 @@ class NewApp extends Component {
     disks: null,
     cpus: null,
     system: null,
-    network: {jej: "kek"},
+    net_metrics: null,
+    net_metrics_rates: null,
+    net_tcp: null,
+    net_udp: null,
+    net_nics: null,
+    net_nics_rates: null,
     buttons: [ // Beware, selected is only used for theming of the button
       {name: "Processes", selected: true},
       {name: "Disks", selected: false},
@@ -60,7 +66,6 @@ class NewApp extends Component {
     ipcRenderer.on('msg_procs', function(event, arg) {
       console.log("Renderer received following msg_id: " + "msg_procs");
       console.log("Current button " + this.state.current_button);
-      console.log(this);
       if(this.state.current_button === "Processes")
       {
         console.log("Setting procs state");
@@ -142,7 +147,28 @@ class NewApp extends Component {
 
     ipcRenderer.on('msg_net', (event, arg) => {
       console.log("Renderer received following msg_id: " + "msg_net");
-      console.log("Ignoring for now");
+      if(this.state.current_button == "Network")
+      {
+        this.setState(prevState =>({
+          net_metrics: arg.net_metrics,
+          net_metrics_rates: arg.net_metric_rates,
+          net_tcp: arg.tcp_info,
+          net_udp: arg.udp_info,
+          net_nics: arg.nic_metrics,
+          net_nics_rates: arg.nic_metrics_rates,
+          time_of_last_data: this.get_current_time()
+        }));
+      }
+      else
+      {
+        this.state.net_metrics = arg.net_metrics;
+        this.state.net_metrics_rates = arg.net_metric_rates;
+        this.state.net_tcp = arg.tcp_info;
+        this.state.net_udp = arg.udp_info;
+        this.state.net_nics = arg.nic_metrics;
+        this.state.net_nics_rates = arg.nic_metrics_rates;
+      }
+
     });
 
   }
@@ -416,7 +442,16 @@ class NewApp extends Component {
 
   build_network_page()
   {
-    
+    if(this.state.net_tcp != null && this.state.current_button == "Network")
+      return( <NetworkView 
+        net_metrics={this.state.net_metrics}
+        net_metrics_rates={this.state.net_metrics_rates}
+        net_tcp={this.state.net_tcp}
+        net_udp={this.state.net_udp}
+        net_nics={this.state.net_nics}
+        net_nics_rates={this.state.net_nics_rates}
+        filter_text={this.state.filter_text}
+      /> );
   }
 
   render() {
@@ -436,6 +471,7 @@ class NewApp extends Component {
         {this.build_procs_page()}
         {this.build_disks_page()}
         {this.build_system_page()}
+        {this.build_network_page()}
       </div>
     );
   }
