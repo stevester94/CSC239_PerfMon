@@ -26,9 +26,15 @@ class NewApp extends Component {
       {name: "Network"}
     ],
     current_button: "Processes",
-    filter_text: ""
+    filter_text: "",
+    time_of_last_data: null
   };
 
+  get_current_time()
+  {
+    let d = new Date();
+    return String(d.getHours()) + ":" + String(d.getMinutes()) + ":" + String(d.getSeconds());
+  }
   constructor()
   {
     super();
@@ -50,7 +56,8 @@ class NewApp extends Component {
       {
         console.log("Setting procs state");
         this.setState(prevState =>({
-          procs: arg
+          procs: arg,
+          time_of_last_data: this.get_current_time()
         }));
       }
       else
@@ -64,7 +71,8 @@ class NewApp extends Component {
       if(this.state.current_button === "Disks")
       {
         this.setState(prevState =>({
-          disks: arg
+          disks: arg,
+          time_of_last_data: this.get_current_time()
         }));
       }
       else
@@ -78,7 +86,8 @@ class NewApp extends Component {
       if(this.state.current_button === "CPUs")
       {
         this.setState(prevState =>({
-          cpus: arg
+          cpus: arg,
+          time_of_last_data: this.get_current_time()
         }));
       }
       else
@@ -92,7 +101,8 @@ class NewApp extends Component {
       if(this.state.current_button === "System")
       {
         this.setState(prevState =>({
-          system: arg
+          system: arg,
+          time_of_last_data: this.get_current_time()
         }));
       }
       else
@@ -227,7 +237,7 @@ class NewApp extends Component {
       let num_procs = Object.keys(this.state.procs).length
       let procs_graph = <StevesStreamingGraph
         title="Num Procs"
-        label={this.num_received} 
+        label={this.state.time_of_last_data} 
         data_point={num_procs} 
         max_data_points={5}/>;
 
@@ -308,13 +318,13 @@ class NewApp extends Component {
       let mem_title = "Memory usage";
 
       // context switches per second graph
-      let context_label = this.num_received;
+      let context_label = this.state.time_of_last_data;
       let context_data   = this.state.system.context_switches_per_second;
       let context_title  = "Context Switches per second";
       delete this.state.system.context_switches_per_second; // Perhaps delete from the details table instead?
 
       // interrupts per second graph
-      let interrupts_label = this.num_received;
+      let interrupts_label = this.state.time_of_last_data;
       let interrupts_data  = this.state.system.interrupts_per_second;
       let interrupts_title = "Interrupts per second";
       delete this.state.system.interrupts_per_second;
