@@ -257,16 +257,28 @@ class NewApp extends Component {
       let table_data = this.generate_table_data();
       
       // Disk usage bar graph
-      let title = "Disk Usage"
-      let data = [];
-      let labels = [];
+      let usage_title = "Disk Usage"
+      let usage_data = [];
+      let usage_labels = [];
       for(var disk of table_data)
       {
-        labels.push(disk.disk_name);
-        data.push(disk.sectors_written);
+        usage_labels.push(disk.disk_name);
+        usage_data.push(disk.percent_used);
       }
 
-      let disks_graph = <StevesBarGraph title={title} labels={labels} data={data}/>
+      // TODO: Too fuckin lazy to do this shit, streaming graph doesn't support multiple datasets to be streamed
+      // // Reads per second line graph
+      // let reads_title = "Reads per second";
+      // let reads_data = [];
+      // let reads_labels [];
+      // for(var disk of table_data)
+      // {
+      //   reads_data.push()
+      // }
+
+
+
+      let disks_graph = <StevesBarGraph title={usage_title} labels={usage_labels} data={usage_data} max_y={1.0}/>
 
       // Data table
       let table = <StevesTable table_data={table_data}/>;
