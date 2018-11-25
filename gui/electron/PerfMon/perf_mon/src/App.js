@@ -311,7 +311,6 @@ class NewApp extends Component {
         <>
           <div className="container">
             <div>{procs_graph}</div>
-            <div><DetailsReadout details={["jejjjjjjjjjjjjj", "kek"]}/></div>
           </div>
           <div>{table}</div>
         </>
