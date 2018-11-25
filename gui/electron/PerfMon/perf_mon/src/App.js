@@ -442,6 +442,7 @@ class NewApp extends Component {
 
   build_network_page()
   {
+    console.log(this.time_of_last_data);
     if(this.state.net_tcp != null && this.state.current_button == "Network")
       return( <NetworkView 
         net_metrics={this.state.net_metrics}
@@ -451,6 +452,7 @@ class NewApp extends Component {
         net_nics={this.state.net_nics}
         net_nics_rates={this.state.net_nics_rates}
         filter_text={this.state.filter_text}
+        timestamp={this.state.time_of_last_data}
       /> );
   }
 

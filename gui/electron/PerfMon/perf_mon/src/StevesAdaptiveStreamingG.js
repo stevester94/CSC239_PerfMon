@@ -5,38 +5,7 @@ import React, { Component } from 'react';
 
 var type = "line";
 
-var options= {
-    responsive: true,
-    animation: false,
-    title: {
-        display: false,
-        text: 'Chart.js Line Chart'
-    },
-    tooltips: {
-        mode: 'index',
-        intersect: false,
-    },
-    hover: {
-        mode: 'nearest',
-        intersect: true
-    },
-    scales: {
-        xAxes: [{
-            display: true,
-            scaleLabel: {
-            display: false,
-            labelString: 'Month'
-            }
-        }],
-        yAxes: [{
-            display: true,
-            scaleLabel: {
-            display: false,
-            labelString: 'Value'
-            }
-        }]
-    }
-};
+
 
 class StevesAdaptiveStreamingG extends Component {
     constructor()
@@ -45,7 +14,39 @@ class StevesAdaptiveStreamingG extends Component {
 
         this.data = {
             labels: [],
-            datasets: []
+            datasets: [],
+            options: {
+                responsive: true,
+                animation: false,
+                title: {
+                    display: false,
+                    text: 'Chart.js Line Chart'
+                },
+                tooltips: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                hover: {
+                    mode: 'nearest',
+                    intersect: true
+                },
+                scales: {
+                    xAxes: [{
+                        display: true,
+                        scaleLabel: {
+                        display: false,
+                        labelString: 'Month'
+                        }
+                    }],
+                    yAxes: [{
+                        display: true,
+                        scaleLabel: {
+                        display: false,
+                        labelString: 'Value'
+                        }
+                    }]
+                }
+            }
         }
     }
     render() {
@@ -63,12 +64,12 @@ class StevesAdaptiveStreamingG extends Component {
         }
         if(title != null)
         {
-            options.title.display = true;
-            options.title.text    = title;
+            this.data.options.title.display = true;
+            this.data.options.title.text    = title;
         }
         else
         {
-            options.title.display = false;
+            this.data.options.title.display = false;
         }
         
         for(const [index, data_point] of data_points.entries())
@@ -104,7 +105,7 @@ class StevesAdaptiveStreamingG extends Component {
         //     this.labels.shift();
         // }
         return(
-            <Line data={this.data} options={options} type={type} redraw={true}/>
+            <Line data={this.data} options={this.data.options} type={type} redraw={true}/>
         );
     };
 

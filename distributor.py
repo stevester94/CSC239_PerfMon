@@ -209,9 +209,9 @@ class Distiller:
 
         nic_metric_rate_keys = [
             ("bytes_recvd", "bytes_recvd_per_second"),
-            ("packets_recvd", "packets_recvd_per_second"),
-            ("bytes_sent", "bytes_sent_per_second"),
-            ("packets_sent", "packets_sent_per_second")
+            # ("packets_recvd", "packets_recvd_per_second"),
+            ("bytes_sent", "bytes_sent_per_second")
+            # ("packets_sent", "packets_sent_per_second")
         ] # Each interface is entry in dict, each with above keys
 
         tcp_info_keys = [
