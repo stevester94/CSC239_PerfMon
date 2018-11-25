@@ -22,8 +22,8 @@ class NetworkView extends Component
 
     state = {
         selections: { // Use this to determine available pages and which is active
-            Summary:     {active: true},
-            Nic_Metrics: {active: false},
+            // Summary:     {active: true},
+            Nic_Metrics: {active: true},
             TCP_Metrics: {active: false},
             UDP_Metrics: {active: false}
         }
@@ -180,7 +180,41 @@ class NetworkView extends Component
         let table_data;
 
         table_data = this.filter_array_based_on_keys(this.net_tcp, this.filter_text);
-        return <StevesTable table_data={table_data}/>
+
+        let metrics = [];
+        let metrics_rates_line_graphs = [];
+        for(var key of Object.keys(this.net_metrics))
+        {
+            console.log(key);
+            if(key.includes("tcp"))
+            {
+                metrics.push(key + ": " + this.net_metrics[key]);
+            }
+        }
+        for(var key of Object.keys(this.net_metrics_rates))
+        {
+            if(key.includes("tcp"))
+            {
+                metrics_rates_line_graphs.push(
+                    <div>
+                        <StevesStreamingGraph 
+                            data_point={this.net_metrics_rates[key]} 
+                            label={this.timestamp} 
+                            title={key} 
+                            max_data_points={5}/>
+                    </div>
+                );
+            }
+        }
+        return (
+            <div>
+                <div className="container">
+                    {metrics_rates_line_graphs}
+                    <div><DetailsReadout details={metrics} title="TCP Totals"/></div>
+                </div>
+                <StevesTable table_data={table_data}/>
+            </div>
+        );
         
     }
 
@@ -191,8 +225,41 @@ class NetworkView extends Component
         let table_data;
 
         table_data = this.filter_array_based_on_keys(this.net_udp, this.filter_text);
-        return <StevesTable table_data={table_data}/>
-            
+
+        let metrics = [];
+        let metrics_rates_line_graphs = [];
+        for(var key of Object.keys(this.net_metrics))
+        {
+            console.log(key);
+            if(key.includes("udp"))
+            {
+                metrics.push(key + ": " + this.net_metrics[key]);
+            }
+        }
+        for(var key of Object.keys(this.net_metrics_rates))
+        {
+            if(key.includes("udp"))
+            {
+                metrics_rates_line_graphs.push(
+                    <div>
+                        <StevesStreamingGraph 
+                            data_point={this.net_metrics_rates[key]} 
+                            label={this.timestamp} 
+                            title={key} 
+                            max_data_points={5}/>
+                    </div>
+                );
+            }
+        }
+        return (
+            <div>
+                <div className="container">
+                    {metrics_rates_line_graphs}
+                    <div><DetailsReadout details={metrics} title="UDP Totals"/></div>
+                </div>
+                <StevesTable table_data={table_data}/>
+            </div>
+        );
     }
 
     render()
@@ -215,7 +282,7 @@ class NetworkView extends Component
                         return <option value={selection_name}>{selection_name}</option>
                     })}
                 </select>
-                {this.build_summary_page()}
+                {/* {this.build_summary_page()} */}
                 {this.build_nic_page()}
                 {this.build_tcp_page()}
                 {this.build_udp_page()}

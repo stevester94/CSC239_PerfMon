@@ -192,8 +192,8 @@ class Distiller:
             ("ip_forwarding", "ip_forwarding_per_second"),
             ("ip_in_receive", "ip_in_receive_per_second"),
             ("ip_out_request", "ip_out_request_per_second"),
-            ("tcp_active_opens", "tcp_active_opens_per_second"),
-            ("tcp_current_established", "tcp_current_established_per_second"),
+            # ("tcp_active_opens", "tcp_active_opens_per_second"),
+            # ("tcp_current_established", "tcp_current_established_per_second"),
             ("tcp_in_segs", "tcp_in_segs_per_second"),
             ("tcp_out_segs", "tcp_out_segs_per_second"),
             ("udp_in_datagram", "udp_in_datagram_per_second"),
@@ -218,7 +218,8 @@ class Distiller:
             "local_address",
             "rem_address",
             "username",
-            "program"
+            "program",
+            "inode"
         ] # Dict for each socket, with above keys
 
         udp_info_keys = [
