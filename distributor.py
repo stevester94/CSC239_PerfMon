@@ -42,11 +42,11 @@ class Distiller:
 
         desired_keys = [
             "interval_utilization",
-            "physical_mem_bytes",
+            "physical_mem_KBytes",
             "username",
             "comm",
             "priority",
-            "utime"
+            "running_time"
         ] # With pid as the primary key
 
         procs = dictify_procs(get_all_complete_procs())

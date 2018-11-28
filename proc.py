@@ -55,12 +55,13 @@ def get_proc_stat(pid):
     return dict(zip(keys, final))
 
 def get_proc_complete(pid):
-    custom_keys = ("username", "utilization", "socket_inodes", "virtual_mem_bytes", "physical_mem_bytes", "running_time") # socket_inodes being an array
+    custom_keys = ("username", "utilization", "socket_inodes", "virtual_mem_KBytes", "physical_mem_KBytes", "running_time") # socket_inodes being an array
 
     proc_stat = get_proc_stat(pid)
     if proc_stat == None:
         return None
-    running_time = get_uptime_clocks()["uptime"] - float(proc_stat["starttime"])
+    # Uptime clock is in seconds start time is in jiffies
+    running_time = get_uptime_clocks()["uptime"] - ( float(proc_stat["starttime"]) / 60 )
     proc_stat["running_time"] = running_time
     username = get_username(get_uid_from_pid(proc_stat["pid"]))
     utilization = calc_proc_utilization_overall_percent(proc_stat)
@@ -70,12 +71,12 @@ def get_proc_complete(pid):
     proc_stat["username"] = username
     proc_stat["utilization"] = utilization
     proc_stat["socket_inodes"] = socket_inodes
-    proc_stat['virtual_mem_bytes'] = proc_stat["vsize"] # Yes this is correct
+    proc_stat['virtual_mem_KBytes'] = proc_stat["vsize"] / 1024 # Yes this is correct
 
     p = Popen(['getconf', 'PAGESIZE'], stdin=PIPE, stdout=PIPE, stderr=PIPE)
     page_size, err = p.communicate()
     page_size = int(page_size)
-    proc_stat['physical_mem_bytes'] = proc_stat["rss"] * page_size
+    proc_stat['physical_mem_KBytes'] = proc_stat["rss"] * page_size / 1024
 
 
     return proc_stat
@@ -127,15 +128,6 @@ def sort_procs_by_interval_utilization(procs):
     proc_list.sort(key=lambda x: x[1], reverse=True)
 
     return proc_list
-
-def get_proc_highlights(proc_dict):
-    highlights_keys = ("username", "comm", "virtual_mem_bytes", "physical_mem_bytes", "interval_utilization")
-    highlights = []
-    for h in highlights_keys:
-        if h in proc_dict:
-            highlights.append(str(proc_dict[h]))
-
-    return highlights
 
 # return lis of pids
 def get_all_pids():

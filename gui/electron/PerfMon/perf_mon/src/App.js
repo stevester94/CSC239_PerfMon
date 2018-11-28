@@ -312,7 +312,7 @@ class NewApp extends Component {
       let total_interval_usage  = 0;
       for(var process of table_data)
       {
-        total_mem_bytes += process.physical_mem_bytes;
+        total_mem_bytes += process.physical_mem_KBytes;
         total_interval_usage += process.interval_utilization;
 
         if(!(process.username in user_busyness))
