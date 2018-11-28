@@ -46,5 +46,5 @@ def get_uptime_clocks():
     f = open("/proc/uptime")
 
     line = f.read()
-    return dict(zip(keys, [float(f)*CLOCK_PER_SECOND for f in re.search("(.*?) (.*)", line).groups()]))
+    return dict(zip(keys, [float(f) for f in re.search("(.*?) (.*)", line).groups()]))
 

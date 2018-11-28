@@ -60,8 +60,8 @@ def get_proc_complete(pid):
     proc_stat = get_proc_stat(pid)
     if proc_stat == None:
         return None
-    # Uptime clock is in seconds start time is in jiffies
-    running_time = get_uptime_clocks()["uptime"] - ( float(proc_stat["starttime"]) / 60 )
+    # Uptime clock is in seconds, start time is in ticks. We assume here that HZ is defined as 100
+    running_time = get_uptime_clocks()["uptime"] - ( float(proc_stat["starttime"]) / 100 )
     proc_stat["running_time"] = running_time
     username = get_username(get_uid_from_pid(proc_stat["pid"]))
     utilization = calc_proc_utilization_overall_percent(proc_stat)
