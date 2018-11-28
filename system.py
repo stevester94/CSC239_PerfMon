@@ -1,6 +1,7 @@
 #! /usr/bin/python
 import re
 from utils import *
+import platform
 
 def get_cpu_utilization():
     keys = ("cpu_name", "user_mode_ms", "nice_mode_ms", "system_mode_ms", "idle_task_ms", 
@@ -110,9 +111,28 @@ def get_uptime():
     (uptime, _) = line.split(" ")
 
     return int(float(uptime))
+
+def get_cpu_info():
+    ret_dict = {}
+    f = open("/proc/cpuinfo")
+
+    model_line = get_first_matching_line(f, "model name")
+    ret_dict["model"] = re.search(r": (.*)", model_line).group(1)
+
+    clock_speed_line = get_first_matching_line(f, "cpu MHz")
+    ret_dict["clock_speed_MHz"] = re.search(r": (.*)", clock_speed_line).group(1)
+
+    address_sizes_line = get_first_matching_line(f, "address sizes")
+    bits_physical = int(re.search(r"([0-9]*) bits physical", address_sizes_line).group(1))
+    bits_virtual  = int(re.search(r"([0-9]*) bits virtual", address_sizes_line).group(1))
+
+    ret_dict["virtual_address_size_GB"] = (2**bits_virtual) / 2**30
+    ret_dict["physical_address_size_GB"] = (2**bits_physical) / 2**30
+    ret_dict["arch"] = platform.machine()
+
+    return ret_dict
+
+
     
 if __name__ == "__main__":
-    print get_meminfo()
-    print get_context_switches()
-    print get_interrupts_serviced()
-    print get_cpu_utilization()
+    print get_cpu_info()

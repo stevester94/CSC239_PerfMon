@@ -46,7 +46,8 @@ class Distiller:
             "username",
             "comm",
             "priority",
-            "running_time"
+            "running_time",
+            "virtual_mem_KBytes"
         ] # With pid as the primary key
 
         procs = dictify_procs(get_all_complete_procs())
@@ -122,12 +123,17 @@ class Distiller:
 
     def distill_system(self, interval):
         desired_keys = [
+            "model",
+            "clock_speed_MHz",
+            "virtual_address_size_GB",
+            "physical_address_size_GB",
             'free_kbytes',
             'total_kbytes',
             'used_percent',
             "context_switches",
             "interrupts",
-            "uptime_secs"
+            "uptime_secs",
+            "arch"
         ]
         # And also, context_switches_per_second, interrupts_per_second
 
@@ -140,15 +146,29 @@ class Distiller:
         mem_info["interrupts"] = interrupts
         mem_info["uptime_secs"] = get_uptime()
 
+        # Merge the dicts
+        all_system_info = mem_info.copy()
+        all_system_info.update(get_cpu_info())
+
         if self.prev_context_switches  != None:
             mem_info["context_switches_per_second"] = get_switches_per_second(self.prev_context_switches, context_switches, interval)
         if self.prev_interrupts != None:
             mem_info["interrupts_per_second"] = get_interrupts_per_second(self.prev_interrupts, interrupts, interval)
 
+        payload = {}
+        for key in desired_keys:
+            payload[key] = all_system_info[key]
+        
         self.prev_context_switches = context_switches
         self.prev_interrupts = interrupts
-        self.system_payload = mem_info
-        return self.system_payload
+
+        self.system_payload = payload
+
+
+
+
+
+        return payload
 
     def distill_cpus(self):
         desired_keys = [
