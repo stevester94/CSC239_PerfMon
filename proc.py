@@ -32,7 +32,7 @@ def get_procs_from_inode(inode, proc_dict):
 
     return procs
 
-
+# utime and stime are in clock ticks, running time 
 def get_proc_stat(pid):
     keys = ("pid", "comm", "state", "ppid", "pgrp", "session", "tty_nr", "tpgid", "flags", "minflt", "cminflt", "majflt", "cmajflt", "utime", "stime", "cutime", "cstime", "priority", "nice", "num_threads", "itrealvalue", "starttime", "vsize", "rss", "rsslim", "startcode", "endcode", "startstack", "kstkesp", "kstkeip", "signal", "blocked", "sigignore", "sigcatch", "wchan", "nswap", "cnswap", "exit_signal", "processor", "rt_priority", "policy", "delayacct_blkio_ticks", "guest_time", "cguest_time", "start_data", "end_data", "start_brk", "arg_start", "arg_end", "env_start", "env_end", "exit_code")
 
@@ -83,13 +83,13 @@ def get_proc_complete(pid):
 
 
 
-
+# utime and stime are in ticks, running_time is calculated by me and is in seconds. Have to account for this
 def calc_proc_utilization_overall_percent(proc_dict):
     user_time = proc_dict["utime"]
     system_time = proc_dict["stime"]
     total_time = proc_dict["running_time"]
 
-    return float(user_time + system_time) / total_time
+    return (float(user_time + system_time) / 100) / total_time
 
 def calc_proc_utilization_interval_percent(prev, current):
     def _calc_time_busy(d):
@@ -99,9 +99,9 @@ def calc_proc_utilization_interval_percent(prev, current):
         return d["running_time"]
 
     busy_delta = _calc_time_busy(current) - _calc_time_busy(prev)
-    total_delta = _calc_total_time(current) - _calc_time_busy(prev)
+    total_delta = _calc_total_time(current) - _calc_total_time(prev)
 
-    return float(busy_delta)/total_delta
+    return (float(busy_delta) / 100) /total_delta
 
 def dictify_procs(procs):
     d = {}
