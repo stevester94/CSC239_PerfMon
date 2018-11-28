@@ -307,10 +307,33 @@ class NewApp extends Component {
       // Data table
       let table = <StevesTable table_data={table_data}/>;
 
+      let user_busyness = {}
+      let total_mem_bytes = 0;
+      let total_interval_usage  = 0;
+      for(var process of table_data)
+      {
+        total_mem_bytes += process.physical_mem_bytes;
+        total_interval_usage += process.interval_utilization;
+
+        if(!(process.username in user_busyness))
+        {
+          user_busyness[process.username] = 0.0;
+        }
+        console.log(process.interval_utilization);
+        user_busyness[process.username] += process.interval_utilization;
+      }
+
+      let details = [];
+      let busiest_user = Object.keys(user_busyness).reduce(function(a, b){ return user_busyness[a] > user_busyness[b] ? a : b });
+      details.push("Busiest User: " + busiest_user);
+      details.push("Average physical mem usage: " + String(total_mem_bytes /table_data.length    ));
+      details.push("Average interval usage: " + String(total_interval_usage/table_data.length    ));
+
       return (
         <>
           <div className="container">
             <div>{procs_graph}</div>
+            <div><DetailsReadout details={details}/></div>
           </div>
           <div>{table}</div>
         </>
@@ -422,6 +445,7 @@ class NewApp extends Component {
         cpu_labels.push(cpu.logical_cpu);
         cpu_data.push(cpu.interval_utilization);
       }
+
       return (
         <>
           <div className="container">
