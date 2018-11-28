@@ -18,14 +18,64 @@
   color: white;
 }
 
+body {
+  background-color: #353b42;
+  font-size: 0.7em;
+  color: white;
+}
+
+/* Table Header */
+.ReactTable .rt-thead.-header{
+  background-color: #000000a3;
+  /* color: red; */
+}
+
+.rt-tr.-odd { 
+  background-color: #00000057 !important;
+}
+
+.rt-tr.-even {
+  background-color: #2c2222;
+}
+
+
+
+
+canvas {
+  /* background-color: white; */
+  border:1px solid black;
+}
+
+
+.DetailsReadout {
+  border:1px solid black;
+  position: absolute;
+  right: 1%;
+  top: 0;
+  /* color: bisque; */
+  /* background-color: white; */
+}
+
+.DetailsReadout li {
+  list-style-type: none;
+  margin: 0;
+
+}
+
 .App-link {
   color: #61dafb;
 }
 
 .container {
+  /* margin-top: 1em;
+  margin-bottom: 1em; */
   display: flex;
   /* justify-content: space-between; */
   flex-direction: row;
+}
+
+.container div {
+  margin: 0.5em;
 }
 
 .flex-grower {

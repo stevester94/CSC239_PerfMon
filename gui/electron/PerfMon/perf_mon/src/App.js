@@ -3,6 +3,8 @@ import StevesTable from "./StevesTable.js"
 import DetailsReadout from "./DetailsReadout.js"
 import StevesBarGraph from "./StevesBarGraph.js"
 import StevesPieGraph from "./StevesPieGraph.js"
+import { Chart } from 'react-chartjs-2';
+
 import './App.css';
 import 'react-table/react-table.css'
 // import { throws } from 'assert';
@@ -20,7 +22,7 @@ var COLORS = {
 	GREEN: 'rgb(75, 192, 192)',
 	BLUE: 'rgb(54, 162, 235)',
 	PURPLE: 'rgb(153, 102, 255)',
-	GREY: 'rgb(231,233,237)'
+  GREY: 'rgb(231,233,237)',
 };
 
 class NewApp extends Component {
@@ -55,6 +57,8 @@ class NewApp extends Component {
   constructor()
   {
     super();
+
+    Chart.defaults.global.defaultFontColor = 'white';
 
     // In renderer process (web page).
 

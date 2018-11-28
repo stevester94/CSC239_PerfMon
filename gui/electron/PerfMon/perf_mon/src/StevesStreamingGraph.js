@@ -26,17 +26,23 @@ var options= {
     },
     scales: {
     xAxes: [{
-        display: true,
-        scaleLabel: {
-        display: false,
-        labelString: 'Month'
+            display: true,
+            gridLines: {
+                color: "grey"
+            },
+            scaleLabel: {
+                display: false,
+                labelString: 'Month',
         }
     }],
     yAxes: [{
-        display: true,
-        scaleLabel: {
-        display: false,
-        labelString: 'Value'
+            display: true,
+            gridLines: {
+                color: "grey"
+            },
+            scaleLabel: {
+                display: false,
+                labelString: 'Value',
         }
     }]
     }
@@ -53,8 +59,8 @@ class StevesStreamingGraph extends Component {
             labels: this.labels,
             datasets: [{
                 label: 'My First dataset',
-                backgroundColor: 'rgb(255, 99, 132)',
-                borderColor: 'rgb(255, 99, 132)',
+                backgroundColor: 'rgb(94, 63, 144)',
+                borderColor: 'rgb(94, 63, 144)',
                 data: this.data_points,
                 fill: false,
             }]
