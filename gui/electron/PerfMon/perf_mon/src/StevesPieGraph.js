@@ -38,7 +38,8 @@ window.chartColors = {
 	red: 'rgb(255, 99, 132)',
 	orange: 'rgb(255, 159, 64)',
 	yellow: 'rgb(255, 205, 86)',
-	green: 'rgb(75, 192, 192)',
+    green: 'rgb(75, 192, 192)',
+    ultra_green: '#27ae61',
 	blue: 'rgb(54, 162, 235)',
 	purple: 'rgb(153, 102, 255)',
 	grey: 'rgb(231,233,237)'
@@ -55,7 +56,10 @@ var data = {
             window.chartColors.green,
             window.chartColors.blue,
           ],
-        borderColor: 'rgb(255, 99, 132)',
+        borderColor: [
+            window.chartColors.red,
+            window.chartColors.orange,
+        ],
         data: [10,90],
         fill: false,
     }]

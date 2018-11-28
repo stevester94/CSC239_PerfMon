@@ -27,7 +27,7 @@ body {
 /* Table Header */
 .ReactTable .rt-thead.-header{
   background-color: #000000a3;
-  /* color: red; */
+  color: #dfc48c;
 }
 
 .rt-tr.-odd { 
@@ -50,16 +50,17 @@ canvas {
 .DetailsReadout {
   border:1px solid black;
   position: absolute;
+  display: block;
   right: 1%;
   top: 0;
-  /* color: bisque; */
-  /* background-color: white; */
+  color: #dfc48c;
+  background-color: #000000a3;
+  padding-right: 2.5em;
 }
 
 .DetailsReadout li {
   list-style-type: none;
   margin: 0;
-
 }
 
 .App-link {

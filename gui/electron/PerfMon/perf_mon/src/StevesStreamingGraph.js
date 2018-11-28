@@ -27,9 +27,9 @@ var options= {
     scales: {
     xAxes: [{
             display: true,
-            gridLines: {
-                color: "grey"
-            },
+            // gridLines: {
+            //     color: "grey"
+            // },
             scaleLabel: {
                 display: false,
                 labelString: 'Month',
@@ -37,9 +37,9 @@ var options= {
     }],
     yAxes: [{
             display: true,
-            gridLines: {
-                color: "grey"
-            },
+            // gridLines: {
+            //     color: "grey"
+            // },
             scaleLabel: {
                 display: false,
                 labelString: 'Value',
