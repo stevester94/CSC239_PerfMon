@@ -379,66 +379,63 @@ class Distributor(threading.Thread):
         payload = {}
         payload["msg_id"] = "msg_disks"
         payload["data"] = self.distiller.distill_disks(self.interval)
-        self.send_payload(payload)
 
-        history.find_one_and_update(
-            {'timestamp': self.send_all_batch_time},
-            {'$set': {payload["msg_id"]: payload["data"]}},
-            upsert=True)
+        self.send_payload(payload)
+        self.mongo_payload[payload["msg_id"]] = payload["data"]
 
 
     def send_procs(self):
         payload = {}
         payload["msg_id"] = "msg_procs"
         payload["data"] = self.distiller.distill_procs()
+        
         self.send_payload(payload)
+        self.mongo_payload[payload["msg_id"]] = payload["data"]
 
-        history.find_one_and_update(
-            {'timestamp': self.send_all_batch_time},
-            {'$set': {payload["msg_id"]: payload["data"]}},
-            upsert=True)
         
     def send_system(self):
         payload = {}
         payload["msg_id"] = "msg_system"
         payload["data"] = self.distiller.distill_system(self.interval)
-        self.send_payload(payload)
 
-        history.find_one_and_update(
-            {'timestamp': self.send_all_batch_time},
-            {'$set': {payload["msg_id"]: payload["data"]}},
-            upsert=True)
+        self.send_payload(payload)
+        self.mongo_payload[payload["msg_id"]] = payload["data"]
+
 
         
     def send_cpus(self):
         payload = {}
         payload["msg_id"] = "msg_cpus"
         payload["data"] = self.distiller.distill_cpus()
-        self.send_payload(payload)
 
-        history.find_one_and_update(
-            {'timestamp': self.send_all_batch_time},
-            {'$set': {payload["msg_id"]: payload["data"]}},
-            upsert=True)
+        self.send_payload(payload)
+        self.mongo_payload[payload["msg_id"]] = payload["data"]
+
 
     def send_net(self):
         payload = {}
         payload["msg_id"] = "msg_net"
         payload["data"]   = self.distiller.distill_network(self.interval)
-        self.send_payload(payload)
 
-        history.find_one_and_update(
-            {'timestamp': self.send_all_batch_time},
-            {'$set': {payload["msg_id"]: payload["data"]}},
-            upsert=True)
+        self.send_payload(payload)
+        self.mongo_payload[payload["msg_id"]] = payload["data"]
+
 
     def send_all(self):
-        self.send_all_batch_time = int(time.time())
+        self.mongo_payload = {}
         self.send_disks()
         self.send_procs()
         self.send_system()
         self.send_cpus()
         self.send_net()
+
+        # We batch them all like this so it's atomic
+        # Eliminate 'unlikely' race condition where electron reads mid way through
+        # a send_all
+        history.find_one_and_update(
+            {'timestamp': int(time.time())},
+            {'$set': self.mongo_payload},
+            upsert=True)
 
     def run(self):
         while True:
