@@ -10,9 +10,20 @@ import sys
 import json
 import socket
 import threading
+from pymongo import MongoClient
+import time
 
 
 pp = pprint.PrettyPrinter(indent=4)
+
+mongo_client = MongoClient('localhost', 27017)
+history  = mongo_client.historic_db.history
+"""
+history schema:
+    <unix timestamp>
+        { < all message types > : < corresponding data > }
+
+"""
 
 
 class Distiller:
@@ -370,17 +381,34 @@ class Distributor(threading.Thread):
         payload["data"] = self.distiller.distill_disks(self.interval)
         self.send_payload(payload)
 
+        history.find_one_and_update(
+            {'timestamp': self.send_all_batch_time},
+            {'$set': {payload["msg_id"]: payload["data"]}},
+            upsert=True)
+
+
     def send_procs(self):
         payload = {}
         payload["msg_id"] = "msg_procs"
         payload["data"] = self.distiller.distill_procs()
         self.send_payload(payload)
+
+        history.find_one_and_update(
+            {'timestamp': self.send_all_batch_time},
+            {'$set': {payload["msg_id"]: payload["data"]}},
+            upsert=True)
         
     def send_system(self):
         payload = {}
         payload["msg_id"] = "msg_system"
         payload["data"] = self.distiller.distill_system(self.interval)
         self.send_payload(payload)
+
+        history.find_one_and_update(
+            {'timestamp': self.send_all_batch_time},
+            {'$set': {payload["msg_id"]: payload["data"]}},
+            upsert=True)
+
         
     def send_cpus(self):
         payload = {}
@@ -388,18 +416,29 @@ class Distributor(threading.Thread):
         payload["data"] = self.distiller.distill_cpus()
         self.send_payload(payload)
 
+        history.find_one_and_update(
+            {'timestamp': self.send_all_batch_time},
+            {'$set': {payload["msg_id"]: payload["data"]}},
+            upsert=True)
+
     def send_net(self):
         payload = {}
         payload["msg_id"] = "msg_net"
         payload["data"]   = self.distiller.distill_network(self.interval)
         self.send_payload(payload)
 
+        history.find_one_and_update(
+            {'timestamp': self.send_all_batch_time},
+            {'$set': {payload["msg_id"]: payload["data"]}},
+            upsert=True)
+
     def send_all(self):
+        self.send_all_batch_time = int(time.time())
         self.send_disks()
         self.send_procs()
         self.send_system()
         self.send_cpus()
-        self.send_net() # Ignore net for now
+        self.send_net()
 
     def run(self):
         while True:
@@ -551,11 +590,13 @@ def distributor_test():
 
 
 if __name__ == "__main__":
-    if sys.argv[1] == "validate_procs": validate_procs()
-    if sys.argv[1] == "validate_meminfo": validate_meminfo()
-    if sys.argv[1] == "validate_context_switches": validate_context_switches()
-    if sys.argv[1] == "validate_interrupts_serviced": validate_interrupts_serviced()
-    if sys.argv[1] == "validate_disk_info": validate_disk_info()
-    if sys.argv[1] == "distiller_test": distiller_test()
-    if sys.argv[1] == "distributor_test": distributor_test()
-    if sys.argv[1] == "distill_network": distill_network()
+    if len(sys.argv) > 1:
+        if sys.argv[1] == "validate_procs": validate_procs()
+        elif sys.argv[1] == "validate_meminfo": validate_meminfo()
+        elif sys.argv[1] == "validate_context_switches": validate_context_switches()
+        elif sys.argv[1] == "validate_interrupts_serviced": validate_interrupts_serviced()
+        elif sys.argv[1] == "validate_disk_info": validate_disk_info()
+        elif sys.argv[1] == "distiller_test": distiller_test()
+        elif sys.argv[1] == "distill_network": distill_network()
+    else: 
+        distributor_test()

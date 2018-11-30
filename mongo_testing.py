@@ -11,7 +11,7 @@ client = MongoClient()
 client = MongoClient('localhost', 27017)
 test_db = client.test_db # Access a particular database
 
-# Insert a single 'document'
+# Insert a single 'document' into a collection
 posts = test_db.posts
 post_data = {
     'title': 'Python and MongoDB',
