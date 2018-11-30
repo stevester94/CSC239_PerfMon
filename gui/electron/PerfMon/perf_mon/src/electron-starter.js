@@ -66,58 +66,42 @@ function serve_historian_request_keys(callback)
             let keys = {};
 
             // Disks
-            keys.Disks = [];
+            keys.Disks = {};
             for (var disk of Object.keys(doc.msg_disks)) {
-                source = [];
-                fields = [];
-                source.push("msg_disks");
-                source.push(disk);
+
+                keys.Disks[disk] = {};
                 for (var disk_key of Object.keys(doc.msg_disks[disk])) {
-                    fields.push(disk_key);
+                    keys.Disks[disk][disk_key] = null;
                 }
-                keys.Disks.push({ source: source, fields: fields, main_name: disk });
             }
 
             // CPUs
-            keys.CPUs = [];
+            keys.CPUs = {};
             for (var _main_name of Object.keys(doc.msg_cpus)) {
-                source = [];
-                fields = [];
 
-                source.push("msg_cpus");
-                source.push(_main_name);
+                keys.CPUs[_main_name] = {};
                 for (var field of Object.keys(doc.msg_cpus[_main_name])) {
-                    fields.push(field);
+                    keys.CPUs[_main_name][field] = null;
                 }
-                keys.CPUs.push({ source: source, fields: fields, main_name: _main_name });
             }
 
-            keys.NIC_metrics = [];
+            // NIC_metrics
+            keys.NIC_metrics = {};
             for (var _main_name of Object.keys(doc.msg_net.nic_metrics)) {
-                source = [];
-                fields = [];
 
-                source.push("msg_net");
-                source.push("nic_metrics");
-                source.push(_main_name);
+                keys.NIC_metrics[_main_name] = {}
                 for (var field of Object.keys(doc.msg_net.nic_metrics[_main_name])) {
-                    fields.push(field);
+                    keys.NIC_metrics[_main_name][field] = null;
                 }
-                keys.NIC_metrics.push({ source: source, fields: fields, main_name: _main_name });
             }
 
-            keys.NIC_metrics_rates = [];
+            keys.NIC_metrics_rates = {};
             for (var _main_name of Object.keys(doc.msg_net.nic_metrics_rates)) {
-                source = [];
-                fields = [];
 
-                source.push("msg_net");
-                source.push("nic_metrics_rates")
-                source.push(_main_name);
+                keys.NIC_metrics_rates[_main_name] = {};
                 for (var field of Object.keys(doc.msg_net.nic_metrics_rates[_main_name])) {
-                    fields.push(field);
+                    keys.NIC_metrics_rates[_main_name][field] = null;
                 }
-                keys.NIC_metrics_rates.push({ source: source, fields: fields, main_name: _main_name });
             }
 
             // console.log(Object.keys(get_first_member_of_object(doc.msg_disks)));
@@ -133,6 +117,9 @@ function serve_historian_request_keys(callback)
 
     });
 }
+
+serve_historian_request_keys(console.log);
+app.quit();
 
 
 
