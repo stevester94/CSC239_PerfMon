@@ -5,8 +5,9 @@ const { ipcRenderer } = window.require('electron');
 
 class Historian extends Component {
     state = {
-        keys: [],
-        current_data: {}
+        keys: null,
+        current_data: {},
+        current_source: [] // This is just going to be indeces
     }
 
     constructor()
@@ -32,10 +33,13 @@ class Historian extends Component {
         let response = ipcRenderer.send('historian-request-keys', "");
 
         ipcRenderer.once('historian-response-keys', (event, arg) => {
-            console.log("Renderer asynch received:");
+            console.log("Received historian-response-keys");
             console.log(arg);
+
+            this.setState(prevState => ({
+                keys: arg
+            }));
         })
-        this.state.current_data = response;
     }
 
     // msg: historian-request-range
@@ -45,9 +49,39 @@ class Historian extends Component {
 
     }
 
+    selectChangeHandler(arg)
+    {
+        console.log("Selector called: " + String(arg));
+    }
+
+    build_selectors()
+    {
+        if(this.state.keys == null)
+            return;
+        
+        let selectors = [];
+        // This is the special case where nothing has been selected yet, 
+        // Therefore just 
+        if(this.state.current_source.length >= 0)
+        {
+            let selector =
+                <select onChange={this.selectChangeHandler.bind(this)}>
+                    {Object.keys(this.state.keys).map(function (selection_name) {
+                        return <option value={selection_name}>{selection_name}</option>
+                    })}
+                </select>
+            selectors.push(selector);
+        }
+
+
+        return selectors;
+    }
+
     render() {
         return (
-            <div>JEJ: {this.state.current_data}</div>
+            <div>JEJ:
+                {this.build_selectors()}
+            </div>
         );
     }
 }

@@ -30,10 +30,8 @@ const client = new MongoClient('mongodb://localhost:27017');
 // response: historian-response-keys
 // msg: historian-request-range
 // response: historian-response-range
-
-ipcMain.on('historian-request-keys', (event, arg) => {
-    console.log("Main received: historian-request-keys");
-
+function serve_historian_request_keys(callback)
+{
     client.connect(function (err) {
         function get_first_member_of_object(obj) {
             return obj[Object.keys(obj)[0]];
@@ -130,12 +128,19 @@ ipcMain.on('historian-request-keys', (event, arg) => {
             // console.log(Object.keys(get_first_member_of_object(doc.msg_net.nic_metrics)));
             // console.log(Object.keys(get_first_member_of_object(doc.msg_net.nic_metrics_rates)));
 
-            event.sender.send('historian-response-keys', keys);
-
-
+            callback(keys);
         });
 
-        client.close();
+    });
+}
+
+
+
+ipcMain.on('historian-request-keys', (event, arg) => {
+    console.log("Main received: historian-request-keys");
+
+    serve_historian_request_keys((keys) => {
+        event.sender.send('historian-response-keys', keys)
     });
 });
 
