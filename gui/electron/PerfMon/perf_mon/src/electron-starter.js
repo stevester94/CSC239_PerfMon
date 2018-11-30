@@ -9,22 +9,152 @@ const BrowserWindow = electron.BrowserWindow;
 const path = require('path');
 const url = require('url');
 
-let g_message_counter = 0;
+const MongoClient = require('mongodb').MongoClient;
+const assert = require('assert');
 
-// Keep a global reference of the window object, if you don't, the window will
-// be closed automatically when the JavaScript object is garbage collected.
-let mainWindow;
+const { ipcMain } = require('electron')
 
-// IPC testing to the render window
-const {ipcMain} = require('electron')
+/******************
+ * Historian shit *
+ ******************/
+// Database Name
+const dbName = 'historic_db';
+let history;
+// Create a new MongoClient
+const client = new MongoClient('mongodb://localhost:27017');
+
+
+// msg: historian-request-all
+// response: historian-response-all
+// msg: historian-request-keys
+// response: historian-response-keys
+// msg: historian-request-range
+// response: historian-response-range
+
+ipcMain.on('historian-request-keys', (event, arg) => {
+    console.log("Main received: historian-request-keys");
+
+    client.connect(function (err) {
+        function get_first_member_of_object(obj) {
+            return obj[Object.keys(obj)[0]];
+        }
+
+        assert.equal(null, err);
+        console.log("Connected successfully to server");
+
+        history = client.db(dbName).collection("history");
+
+        history.find({}).toArray(function (err, docs) {
+            assert.equal(err, null);
+            doc = docs[0];
+            console.log("First record found");
+            // console.log(doc);
+
+            // Procs and specific sockets are going to be a bitch, probably won't do them...
+
+            // Use this as a template
+            // for (var _main_name of Object.keys(doc.__msg_name__)) {
+            //     source = [];
+            //     fields = [];
+
+            //     source.push(__msg_name__);
+            //     source.push(_main_name);
+            //     for (var field of Object.keys(doc.__msg_name__[_main_name])) {
+            //         fields.push(field);
+            //     }
+            //     keys._dict_name_.push({ source: source, fields: fields, main_name: _main_name });
+            // }
+
+            let keys = {};
+
+            // Disks
+            keys.Disks = [];
+            for (var disk of Object.keys(doc.msg_disks)) {
+                source = [];
+                fields = [];
+                source.push("msg_disks");
+                source.push(disk);
+                for (var disk_key of Object.keys(doc.msg_disks[disk])) {
+                    fields.push(disk_key);
+                }
+                keys.Disks.push({ source: source, fields: fields, main_name: disk });
+            }
+
+            // CPUs
+            keys.CPUs = [];
+            for (var _main_name of Object.keys(doc.msg_cpus)) {
+                source = [];
+                fields = [];
+
+                source.push("msg_cpus");
+                source.push(_main_name);
+                for (var field of Object.keys(doc.msg_cpus[_main_name])) {
+                    fields.push(field);
+                }
+                keys.CPUs.push({ source: source, fields: fields, main_name: _main_name });
+            }
+
+            keys.NIC_metrics = [];
+            for (var _main_name of Object.keys(doc.msg_net.nic_metrics)) {
+                source = [];
+                fields = [];
+
+                source.push("msg_net");
+                source.push("nic_metrics");
+                source.push(_main_name);
+                for (var field of Object.keys(doc.msg_net.nic_metrics[_main_name])) {
+                    fields.push(field);
+                }
+                keys.NIC_metrics.push({ source: source, fields: fields, main_name: _main_name });
+            }
+
+            keys.NIC_metrics_rates = [];
+            for (var _main_name of Object.keys(doc.msg_net.nic_metrics_rates)) {
+                source = [];
+                fields = [];
+
+                source.push("msg_net");
+                source.push("nic_metrics_rates")
+                source.push(_main_name);
+                for (var field of Object.keys(doc.msg_net.nic_metrics_rates[_main_name])) {
+                    fields.push(field);
+                }
+                keys.NIC_metrics_rates.push({ source: source, fields: fields, main_name: _main_name });
+            }
+
+            // console.log(Object.keys(get_first_member_of_object(doc.msg_disks)));
+            // console.log(Object.keys(get_first_member_of_object(doc.msg_cpus)));
+            // console.log(Object.keys(doc.msg_system));
+            // console.log(Object.keys(doc.msg_net.net_metric_rates));
+            // console.log(Object.keys(doc.msg_net.net_metrics));
+            // console.log(Object.keys(get_first_member_of_object(doc.msg_net.nic_metrics)));
+            // console.log(Object.keys(get_first_member_of_object(doc.msg_net.nic_metrics_rates)));
+
+            event.sender.send('historian-response-keys', keys);
+
+
+        });
+
+        client.close();
+    });
+});
+
 // ipcMain.on('asynchronous-message', (event, arg) => {
 //   console.log("Main received: " + arg) // prints "ping"
 //   event.sender.send('asynchronous-reply', 'Hello from main process')
 // })
 
+// Use connect method to connect to the Server
 
-let sample_data = fs.readFileSync(path.join(__dirname, '/../test_data/sample_procs.json'), "utf8");
-let procs_json   = JSON.parse(sample_data);
+
+
+
+
+// Keep a global reference of the window object, if you don't, the window will
+// be closed automatically when the JavaScript object is garbage collected.
+let mainWindow;
+
+
 
 
 // UDP Listening 

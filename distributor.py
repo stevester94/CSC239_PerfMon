@@ -356,6 +356,7 @@ class Distributor(threading.Thread):
         self.distiller.distill_procs()
         self.distiller.distill_system(self.interval)
         self.distiller.distill_cpus()
+        self.distiller.distill_network(self.interval)
     
     # Will jsonify, payload must be a dict of {msg_id, data}
     def send_payload(self, payload):
@@ -388,7 +389,7 @@ class Distributor(threading.Thread):
         payload = {}
         payload["msg_id"] = "msg_procs"
         payload["data"] = self.distiller.distill_procs()
-        
+
         self.send_payload(payload)
         self.mongo_payload[payload["msg_id"]] = payload["data"]
 
