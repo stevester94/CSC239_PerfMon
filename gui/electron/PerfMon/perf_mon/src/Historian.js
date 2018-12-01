@@ -53,19 +53,25 @@ class Historian extends Component {
         chart_data: {
             labels: [],
             datasets: [{
-                label: 'My First dataset',
+                label: '',
                 backgroundColor: 'rgb(94, 63, 144)',
                 borderColor: 'rgb(94, 63, 144)',
                 data: [],
                 fill: false,
             }]
-        }
+        },
+        selector_refs:[] // Each selector will be given a ref from this, probably not great but whatever
     }
 
     constructor()
     {
         super();
         console.log("Historian constructing");
+
+        for(var i = 0; i < 10; i++)
+        {
+            this.state.selector_refs.push(null);
+        }
 
         this.chart_data = {
             labels: this.state.x_points,
@@ -140,6 +146,7 @@ class Historian extends Component {
         console.log("Selector called: " + arg.target.value);
         if(source_index == this.state.current_source.length) // Regular case where we just tack it on
         {
+
             this.state.current_source.push(arg.target.value);
         }
         else if(source_index < this.state.current_source.length) 
@@ -150,12 +157,22 @@ class Historian extends Component {
              */
             this.state.current_source[source_index] = arg.target.value;
             this.state.current_source = this.state.current_source.slice(0, source_index+1); // End index is non-inclusive so add 1
+            if(!is_final_field)
+                this.state.selector_refs[source_index + 1].current.selectedIndex = 0; // Reset the god damn selection, as long as its not the last one
+            this.state.chart_data.labels = []; // Reset the god damn chart data and title
+            this.state.chart_data.datasets[0].data = [];
+            this.state.chart_data.datasets[0].label = "";
+
         }
 
         if(is_final_field)
         {
             console.log("Final field selected, total source array:");
             console.log(this.state.current_source);
+
+            // Set the title of the chart to the last source name
+            this.state.chart_data.datasets[0].label = this.state.current_source[this.state.current_source.length-1];
+
 
             this.request_all_history(this.state.current_source);
         }
@@ -198,8 +215,10 @@ class Historian extends Component {
                 is_this_the_final_layer = true;
             }
 
+            this.state.selector_refs[i] = React.createRef();
+
             let selector =
-                <select onChange={this.selectChangeHandler.bind(this, is_this_the_final_layer, i)}>
+                <select fugg="jej" ref={this.state.selector_refs[i]} onChange={this.selectChangeHandler.bind(this, is_this_the_final_layer, i)}>
                     <option value="" disabled selected>Select field</option>
                     {Object.keys(current_keys).map(function (selection_name) {
                         return <option value={selection_name}>{selection_name}</option>
@@ -215,11 +234,9 @@ class Historian extends Component {
         console.log(this.state.x_points);
         console.log(this.state.y_points);
         return (
-            <div>JEJ:
+            <div>
                 {this.build_selectors()}
-                <div>
-                    <Line data={this.state.chart_data} options={chart_options} type="line" redraw={true} />
-                </div>
+                <Line data={this.state.chart_data} options={chart_options} type="line" redraw={true} />
             </div>
         );
     }
