@@ -12,6 +12,9 @@ import socket
 import threading
 from pymongo import MongoClient
 import time
+import zlib
+import base64
+
 
 
 pp = pprint.PrettyPrinter(indent=4)
@@ -58,7 +61,9 @@ class Distiller:
             "comm",
             "priority",
             "running_time",
-            "virtual_mem_KBytes"
+            "virtual_mem_KBytes",
+            "utime",
+            "stime"
         ] # With pid as the primary key
 
         procs = dictify_procs(get_all_complete_procs())
@@ -370,11 +375,20 @@ class Distributor(threading.Thread):
         print "UDP target IP:", UDP_IP
         print "UDP target port:", UDP_PORT
 
-        print "Sending payload:", json_payload 
+        print "Sending payload:", json_payload
+
+
+        # COMPRESS THAT SHIT
+        base64_compressed_payload = base64.b64encode(zlib.compress(json_payload, 9))
+        print "Before compression payload size: " + str(len(json_payload))
+        print "After compression payload size: " + str(len(base64_compressed_payload))
+
+
+
         sock = socket.socket(socket.AF_INET, # Internet
                             socket.SOCK_DGRAM) # UDP
 
-        sock.sendto(json_payload, (UDP_IP, UDP_PORT))
+        sock.sendto(base64_compressed_payload, (UDP_IP, UDP_PORT))
 
     def send_disks(self):
         payload = {}

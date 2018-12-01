@@ -13,6 +13,8 @@ const MongoClient = require('mongodb').MongoClient;
 const assert = require('assert');
 
 const { ipcMain } = require('electron')
+var zlib = require('zlib');
+
 
 /******************
  * Historian shit *
@@ -251,7 +253,10 @@ server.on('listening', function () {
 });
 
 server.on('message', function (message, remote) {
-    json_payload = JSON.parse(message)
+    console.log(message.toString());
+    // Have I mentioned I don't know what I'm doing?
+    let inflated_message = zlib.inflateSync(new Buffer(message.toString(), 'base64')).toString();
+    json_payload = JSON.parse(inflated_message);
     console.log("Message received, msg_id: " + json_payload.msg_id);
     mainWindow.webContents.send(json_payload.msg_id, json_payload.data);
 
