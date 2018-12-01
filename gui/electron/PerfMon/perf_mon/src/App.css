@@ -39,7 +39,9 @@ body {
 }
 
 
-
+.chart_constrictor {
+  height: 50vh;
+}
 
 canvas {
   /* background-color: white; */

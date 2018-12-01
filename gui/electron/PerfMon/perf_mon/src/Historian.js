@@ -1,13 +1,65 @@
 import React, { Component } from 'react';
 import { runInThisContext } from 'vm';
+import { Line } from 'react-chartjs-2';
+
 const { ipcRenderer } = window.require('electron');
 
+
+var chart_options = {
+    responsive: true,
+    animation: false,
+    maintainAspectRatio: false,
+    title: {
+        display: false,
+        text: 'Chart.js Line Chart'
+    },
+    tooltips: {
+        mode: 'index',
+        intersect: false,
+    },
+    hover: {
+        mode: 'nearest',
+        intersect: true
+    },
+    scales: {
+        xAxes: [{
+            display: true,
+            // gridLines: {
+            //     color: "grey"
+            // },
+            scaleLabel: {
+                display: false,
+                labelString: 'Month',
+            }
+        }],
+        yAxes: [{
+            display: true,
+            // gridLines: {
+            //     color: "grey"
+            // },
+            scaleLabel: {
+                display: false,
+                labelString: 'Value',
+            }
+        }]
+    }
+};
 
 class Historian extends Component {
     state = {
         keys: null,
         current_data: {},
-        current_source: [] // This is just going to be indeces
+        current_source: [],
+        chart_data: {
+            labels: [],
+            datasets: [{
+                label: 'My First dataset',
+                backgroundColor: 'rgb(94, 63, 144)',
+                borderColor: 'rgb(94, 63, 144)',
+                data: [],
+                fill: false,
+            }]
+        }
     }
 
     constructor()
@@ -15,7 +67,23 @@ class Historian extends Component {
         super();
         console.log("Historian constructing");
 
+        this.chart_data = {
+            labels: this.state.x_points,
+            datasets: [{
+                label: 'My First dataset',
+                backgroundColor: 'rgb(94, 63, 144)',
+                borderColor: 'rgb(94, 63, 144)',
+                data: this.state.y_points,
+                fill: false,
+            }]
+        }
+
         this.request_all_keys();
+    }
+
+    get_time_string_from_epoch(epoch) {
+        let d = new Date(epoch * 1000);
+        return String(d.getHours()) + ":" + String(d.getMinutes()) + ":" + String(d.getSeconds());
     }
 
     // msg: historian-request-all
@@ -30,10 +98,17 @@ class Historian extends Component {
             console.log("Received historian-response-all");
             console.log(arg);
 
-            this.setState(prevState => ({
-                current_data: arg
-            }));
-        })
+            this.state.chart_data.labels = [];
+            this.state.chart_data.datasets[0].data = [];
+
+            for(var data_point of arg)
+            {
+                this.state.chart_data.labels.push(this.get_time_string_from_epoch(data_point.timestamp));
+                this.state.chart_data.datasets[0].data.push(data_point.value);
+            }
+
+            this.setState(prevState => ({}));
+        });
     }
 
     // msg: historian-request-keys
@@ -137,9 +212,14 @@ class Historian extends Component {
     }
 
     render() {
+        console.log(this.state.x_points);
+        console.log(this.state.y_points);
         return (
             <div>JEJ:
                 {this.build_selectors()}
+                <div>
+                    <Line data={this.state.chart_data} options={chart_options} type="line" redraw={true} />
+                </div>
             </div>
         );
     }
