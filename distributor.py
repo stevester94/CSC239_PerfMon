@@ -166,14 +166,17 @@ class Distiller:
         all_system_info = mem_info.copy()
         all_system_info.update(get_cpu_info())
 
-        if self.prev_context_switches  != None:
-            mem_info["context_switches_per_second"] = get_switches_per_second(self.prev_context_switches, context_switches, interval)
-        if self.prev_interrupts != None:
-            mem_info["interrupts_per_second"] = get_interrupts_per_second(self.prev_interrupts, interrupts, interval)
+
+
 
         payload = {}
         for key in desired_keys:
             payload[key] = all_system_info[key]
+
+        if self.prev_context_switches  != None:
+            payload["context_switches_per_second"] = get_switches_per_second(self.prev_context_switches, context_switches, interval)
+        if self.prev_interrupts != None:
+            payload["interrupts_per_second"] = get_interrupts_per_second(self.prev_interrupts, interrupts, interval)
         
         self.prev_context_switches = context_switches
         self.prev_interrupts = interrupts
