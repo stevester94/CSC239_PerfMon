@@ -51,6 +51,10 @@ function translate_historian_keys_to_mongo_keys(historian_keys)
             translated_keys.push("msg_net");
             translated_keys.push("nic_metrics_rates")
         }
+        else if(key == "System")
+        {
+            translated_keys.push("msg_system");
+        }
         else
         {
             translated_keys.push(key);
@@ -137,6 +141,12 @@ function serve_historian_request_keys(callback)
                 for (var field of Object.keys(doc.msg_net.nic_metrics_rates[_main_name])) {
                     keys.NIC_metrics_rates[_main_name][field] = null;
                 }
+            }
+
+            // System metrics
+            keys.System = {};
+            for (var field of Object.keys(doc.msg_system)) {
+                keys.System[field] = null;
             }
 
             // console.log(Object.keys(get_first_member_of_object(doc.msg_disks)));

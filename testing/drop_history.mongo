@@ -1,0 +1,2 @@
+use historic_db
+db.history.drop()
