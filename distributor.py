@@ -245,6 +245,7 @@ class Distiller:
             "bytes_sent",
             "packets_sent"
         ] # Each interface is entry in dict, each with above keys
+          # Also 'max_speed_Mb', which has a sentinel value of -1
 
         nic_metric_rate_keys = [
             ("bytes_recvd", "bytes_recvd_per_second"),
@@ -332,6 +333,9 @@ class Distiller:
                 nic_metrics_rates_payload[nic] = nic_dict
         self.prev_nic_metrics = nic_metrics
 
+        if nic_metrics_rates_payload != None:
+            for nic in nic_metrics_rates_payload:
+                nic_metrics_rates_payload[nic]["max_speed_Mb"] = calc_nic_speed(nic)
 
         ret_dict = {}
         ret_dict["net_metric_rates"] = filtered_net_metric_rates
