@@ -23,9 +23,42 @@ let history;
 // Create a new MongoClient
 const client = new MongoClient('mongodb://localhost:27017');
 
+// The keys we pass to the historian are the nice display keys,
+// need to translate them back when we query the database
+function translate_historian_keys_to_mongo_keys(historian_keys)
+{
+    translated_keys = [];
 
-// msg: historian-request-all
-// response: historian-response-all
+    for(let key of historian_keys)
+    {
+        if(key === "Disks")
+        {
+            translated_keys.push("msg_disks");
+        }
+        else if(key === "CPUs")
+        {
+            translated_keys.push("msg_cpus");
+        }
+        else if(key === "NIC_metrics")
+        {
+            translated_keys.push("msg_net");
+            translated_keys.push("nic_metrics");
+        }
+        else if(key === "NIC_metrics_rates")
+        {
+            translated_keys.push("msg_net");
+            translated_keys.push("nic_metrics_rates")
+        }
+        else
+        {
+            translated_keys.push(key);
+        }
+    }
+
+    return translated_keys;
+}
+
+
 // msg: historian-request-keys
 // response: historian-response-keys
 // msg: historian-request-range
@@ -118,8 +151,6 @@ function serve_historian_request_keys(callback)
     });
 }
 
-serve_historian_request_keys(console.log);
-app.quit();
 
 
 
@@ -131,6 +162,9 @@ ipcMain.on('historian-request-keys', (event, arg) => {
     });
 });
 
+
+
+
 // ipcMain.on('asynchronous-message', (event, arg) => {
 //   console.log("Main received: " + arg) // prints "ping"
 //   event.sender.send('asynchronous-reply', 'Hello from main process')
@@ -138,7 +172,62 @@ ipcMain.on('historian-request-keys', (event, arg) => {
 
 // Use connect method to connect to the Server
 
+// msg: historian-request-all
+// response: historian-response-all
+function serve_historian_request_all(keys, callback) {
+    client.connect(function (err) {
+        assert.equal(null, err);
+        console.log("Connected successfully to server");
 
+        history = client.db(dbName).collection("history");
+
+        let projection_string = keys.join('.');
+        console.log("Projection String");
+        console.log(projection_string);
+
+        let projection = { "_id": 0, "timestamp": 1};
+        projection[projection_string] = 1;
+
+        console.log(projection);
+
+        history.find({}).project(projection).toArray(function (err, docs) {
+            assert.equal(err, null);
+            console.log("First doc found: ");
+            console.log(docs[0]);
+
+            let payload = [];
+            for(var doc of docs)
+            {
+                let value = doc;
+                for(var key of keys)
+                {
+                    value = value[key];
+                }
+                payload.push({timestamp: doc.timestamp, value: value})
+
+            }
+            callback(payload);
+        });
+    });
+}
+
+// serve_historian_request_all(["msg_cpus", "cpu", "interval_utilization"], console.log);
+// app.quit();
+
+
+ipcMain.on('historian-request-all', (event, arg) => {
+    console.log("Main received: historian-request-all");
+
+    mongo_keys = translate_historian_keys_to_mongo_keys(arg);
+    console.log("mongo_keys" + String(mongo_keys));
+
+    serve_historian_request_all(mongo_keys, (time_tagged_values) => {
+        console.log("historian-response-all: ");
+        console.log(time_tagged_values);
+
+        event.sender.send('historian-response-all', time_tagged_values)
+    });
+});
 
 
 
