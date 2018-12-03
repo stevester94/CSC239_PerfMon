@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import { runInThisContext } from 'vm';
 import { Line } from 'react-chartjs-2';
+import Historian2 from "./Historian2.js"
+
 
 const { ipcRenderer } = window.require('electron');
 
@@ -73,16 +75,8 @@ class Historian extends Component {
             this.state.selector_refs.push(null);
         }
 
-        this.chart_data = {
-            labels: this.state.x_points,
-            datasets: [{
-                label: 'My First dataset',
-                backgroundColor: 'rgb(94, 63, 144)',
-                borderColor: 'rgb(94, 63, 144)',
-                data: this.state.y_points,
-                fill: false,
-            }]
-        }
+        this.x_data = [];
+        this.y_data = [];
 
         this.request_all_keys();
     }
@@ -104,13 +98,13 @@ class Historian extends Component {
             console.log("Received historian-response-all");
             console.log(arg);
 
-            this.state.chart_data.labels = [];
-            this.state.chart_data.datasets[0].data = [];
+            this.y_data = [];
+            this.x_data = [];
 
             for(var data_point of arg)
             {
-                this.state.chart_data.labels.push(this.get_time_string_from_epoch(data_point.timestamp));
-                this.state.chart_data.datasets[0].data.push(data_point.value);
+                this.x_data.push(this.get_time_string_from_epoch(data_point.timestamp));
+                this.y_data.push(data_point.value);
             }
 
             this.setState(prevState => ({}));
@@ -236,7 +230,7 @@ class Historian extends Component {
         return (
             <div>
                 {this.build_selectors()}
-                <Line data={this.state.chart_data} options={chart_options} type="line" redraw={true} />
+                <Historian2 x_data={this.x_data} y_data={this.y_data} />
             </div>
         );
     }

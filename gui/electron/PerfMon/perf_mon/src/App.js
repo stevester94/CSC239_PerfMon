@@ -5,6 +5,8 @@ import StevesBarGraph from "./StevesBarGraph.js"
 import StevesPieGraph from "./StevesPieGraph.js"
 import Historian from "./Historian.js"
 import { Chart } from 'react-chartjs-2';
+import Historian2 from "./Historian2.js"
+
 
 import './App.css';
 import 'react-table/react-table.css'
@@ -489,6 +491,7 @@ class NewApp extends Component {
   {
     if(this.state.current_button == "History")
       return <Historian />
+      // return <Historian2 />
   }
 
   render() {
