@@ -55,7 +55,7 @@ def get_proc_stat(pid):
     return dict(zip(keys, final))
 
 def get_proc_complete(pid):
-    custom_keys = ("username", "utilization", "socket_inodes", "virtual_mem_KBytes", "physical_mem_KBytes", "running_time") # socket_inodes being an array
+    custom_keys = ("username", "utilization_percent_total", "socket_inodes", "virtual_mem_MB", "physical_mem_MB", "running_time") # socket_inodes being an array
 
     proc_stat = get_proc_stat(pid)
     if proc_stat == None:
@@ -69,14 +69,14 @@ def get_proc_complete(pid):
 
 
     proc_stat["username"] = username
-    proc_stat["utilization"] = utilization
+    proc_stat["utilization_percent_total"] = utilization
     proc_stat["socket_inodes"] = socket_inodes
-    proc_stat['virtual_mem_KBytes'] = proc_stat["vsize"] / 1024 # Yes this is correct
+    proc_stat['virtual_mem_MB'] = float(proc_stat["vsize"]) / 2**20 # Yes this is correct
 
     p = Popen(['getconf', 'PAGESIZE'], stdin=PIPE, stdout=PIPE, stderr=PIPE)
     page_size, err = p.communicate()
     page_size = int(page_size)
-    proc_stat['physical_mem_KBytes'] = proc_stat["rss"] * page_size / 1024
+    proc_stat['physical_mem_MB'] = float(proc_stat["rss"] * page_size) / 2**20
 
 
     return proc_stat
@@ -116,15 +116,15 @@ def populate_all_proc_utilization_interval_percent(prev_procs, current_procs):
     for pid,proc in current_procs.iteritems():
         if pid not in prev_procs:
             print "Setting interval_utilization to 0 for %s" % pid
-            current_procs[pid]["interval_utilization"] = 0
+            current_procs[pid]["interval_utilization_percent"] = 0
             continue # Skip processes that are so new they aren't in the last sweep
         previous = prev_procs[pid]
         current  = proc
-        current_procs[pid]["interval_utilization"] = calc_proc_utilization_interval_percent(previous, current)
+        current_procs[pid]["interval_utilization_percent"] = calc_proc_utilization_interval_percent(previous, current)
 
 # Return a list of (pid, interval_utilization) sorted descending by interval_utilization
 def sort_procs_by_interval_utilization(procs):
-    proc_list = [(pid, proc["interval_utilization"]) for pid,proc in procs.iteritems()]
+    proc_list = [(pid, proc["interval_utilization_percent"]) for pid,proc in procs.iteritems()]
     proc_list.sort(key=lambda x: x[1], reverse=True)
 
     return proc_list

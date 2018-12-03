@@ -55,13 +55,13 @@ class Distiller:
     def distill_procs(self):
 
         desired_keys = [
-            "interval_utilization",
-            "physical_mem_KBytes",
+            "interval_utilization_percent",
+            "physical_mem_MB",
             "username",
             "comm",
             "priority",
             "running_time",
-            "virtual_mem_KBytes",
+            "virtual_mem_MB",
             "utime",
             "stime"
         ] # With pid as the primary key
