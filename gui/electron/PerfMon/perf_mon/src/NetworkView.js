@@ -157,7 +157,7 @@ class NetworkView extends Component
             for(var key of Object.keys(nic))
             {
                 // Skip if key is NIC or key is max_speed_bytes and that value is -1
-                if (!(key == "NIC" || (key == "max_speed_bytes" && nic.max_speed_bytes == -1))) // Filter out the sentinel max speed bytes value 
+                if (!(key == "NIC" || (key == "max_speed_MBytes" && nic.max_speed_bytes == -1))) // Filter out the sentinel max speed bytes value 
                 {
                     data_labels.push(key);
                     data_points.push(nic[key]);
@@ -167,7 +167,7 @@ class NetworkView extends Component
             }
 
             nic_rates_graph =
-                <div className="flex-grower">
+                <div className="container">
                     <StevesAdaptiveStreamingG 
                     title={nic.NIC}     
                     data_points={data_points} 

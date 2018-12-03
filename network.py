@@ -171,7 +171,7 @@ def get_udp_info():
 
 def get_nic_stats():
     keys = [
-        "bytes_recvd",
+        "MBytes_recvd",
         "packets_recvd",
         "errs_recvd",
         "drop_recvd",
@@ -179,7 +179,7 @@ def get_nic_stats():
         "frame_recvd",
         "compressed_recvd",
         "multicast_revd",
-        "bytes_sent",
+        "MBytes_sent",
         "packets_sent",
         "errs_sent",
         "drop_sent",
@@ -203,14 +203,21 @@ def get_nic_stats():
         nic_dict["interface"] = split_line[0]
         for index,key in enumerate(keys):
             nic_dict[key] = int(split_line[index+1]) # Ofset because first split is the interface name
+
+        # Convert bytes to MBytes
+        nic_dict["MBytes_recvd"] = float(nic_dict["MBytes_recvd"]) / 2**20
+        nic_dict["MBytes_sent"]  = float(nic_dict["MBytes_sent"])  / 2**20
+
         nics[split_line[0]] = nic_dict
+
+
 
     return nics
 
 def calc_nic_rates(prev_nics, current_nics, interval_secs):
 
     keys = [
-        "bytes_recvd",
+        "MBytes_recvd",
         "packets_recvd",
         "errs_recvd",
         "drop_recvd",
@@ -218,7 +225,7 @@ def calc_nic_rates(prev_nics, current_nics, interval_secs):
         "frame_recvd",
         "compressed_recvd",
         "multicast_revd",
-        "bytes_sent",
+        "MBytes_sent",
         "packets_sent",
         "errs_sent",
         "drop_sent",
@@ -238,10 +245,18 @@ def calc_nic_rates(prev_nics, current_nics, interval_secs):
     return nic_rates
 
 
+def calc_nic_speed(nic_name):
+    p = Popen(['ethtool', nic_name], stdin=PIPE, stdout=PIPE, stderr=PIPE)
+    response, err = p.communicate() # This gives MBits per second
+
+    match = re.search("Speed: ([0-9]*)", response)
+
+    if match:
+        mbits_per_sec = float(match.group(1))
+        return mbits_per_sec / 8.0 # Megabytes per second
+    else:
+        return -1
+
 
 if __name__ == "__main__":
-    from time import sleep
-    prev = get_nic_stats()
-    sleep(5)
-    cur = get_nic_stats()
-    print calc_nic_rates(prev, cur, 5)
+    print calc_nic_speed("lo:")

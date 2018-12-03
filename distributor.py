@@ -240,17 +240,17 @@ class Distiller:
         ] # Net metric is simple dict
 
         nic_metric_keys = [
-            "bytes_recvd",
+            "MBytes_recvd",
             "packets_recvd",
-            "bytes_sent",
+            "MBytes_sent",
             "packets_sent"
         ] # Each interface is entry in dict, each with above keys
           # Also 'max_speed_bytes', which has a sentinel value of -1
 
         nic_metric_rate_keys = [
-            ("bytes_recvd", "bytes_recvd_per_second"),
+            ("MBytes_recvd", "MBytes_recvd_per_second"),
             # ("packets_recvd", "packets_recvd_per_second"),
-            ("bytes_sent", "bytes_sent_per_second")
+            ("MBytes_sent", "MBytes_sent_per_second")
             # ("packets_sent", "packets_sent_per_second")
         ] # Each interface is entry in dict, each with above keys
 
@@ -333,9 +333,9 @@ class Distiller:
                 nic_metrics_rates_payload[nic] = nic_dict
         self.prev_nic_metrics = nic_metrics
 
-        if nic_metrics_rates_payload != None:
+        if nic_metrics_rates_payload != {}:
             for nic in nic_metrics_rates_payload:
-                nic_metrics_rates_payload[nic]["max_speed_bytes"] = calc_nic_speed(nic)
+                nic_metrics_rates_payload[nic]["max_speed_MBytes"] = calc_nic_speed(nic)
 
         ret_dict = {}
         ret_dict["net_metric_rates"] = filtered_net_metric_rates
@@ -363,12 +363,22 @@ class Distributor(threading.Thread):
         self.interval = interval
         self.distiller = Distiller()
 
+
         # Prime the pump
+        # Interval doesn't matter too much here
         self.distiller.distill_disks(self.interval)
         self.distiller.distill_procs()
         self.distiller.distill_system(self.interval)
         self.distiller.distill_cpus()
         self.distiller.distill_network(self.interval)
+
+        # I can't fucking believe it takes this long to compute these values...
+        # Any time we use something that requires an interval, calculate
+        self.time_last_disks = int(time.time())
+        self.time_last_system = int(time.time())
+        self.time_last_network = int(time.time())
+
+
     
     # Will jsonify, payload must be a dict of {msg_id, data}
     def send_payload(self, payload):
@@ -400,7 +410,10 @@ class Distributor(threading.Thread):
     def send_disks(self):
         payload = {}
         payload["msg_id"] = "msg_disks"
-        payload["data"] = self.distiller.distill_disks(self.interval)
+
+        current_time = int(time.time())
+        payload["data"] = self.distiller.distill_disks(current_time - self.time_last_disks)
+        self.time_last_disks = current_time
 
         self.send_payload(payload)
         self.mongo_payload[payload["msg_id"]] = payload["data"]
@@ -418,7 +431,10 @@ class Distributor(threading.Thread):
     def send_system(self):
         payload = {}
         payload["msg_id"] = "msg_system"
-        payload["data"] = self.distiller.distill_system(self.interval)
+
+        current_time = int(time.time())
+        payload["data"] = self.distiller.distill_system(current_time - self.time_last_system)
+        self.time_last_system = current_time
 
         self.send_payload(payload)
         self.mongo_payload[payload["msg_id"]] = payload["data"]
@@ -437,7 +453,10 @@ class Distributor(threading.Thread):
     def send_net(self):
         payload = {}
         payload["msg_id"] = "msg_net"
-        payload["data"]   = self.distiller.distill_network(self.interval)
+
+        current_time = int(time.time())
+        payload["data"]   = self.distiller.distill_network(current_time - self.time_last_network)
+        self.time_last_network = current_time
 
         self.send_payload(payload)
         self.mongo_payload[payload["msg_id"]] = payload["data"]
