@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 import './App.css';
 import * as am4core from "@amcharts/amcharts4/core";
 import * as am4charts from "@amcharts/amcharts4/charts";
@@ -10,7 +10,7 @@ am4core.useTheme(am4themes_animated);
 
 
 
-class Historian2 extends Component {
+class Historian2 extends PureComponent {
     componentDidMount() {
         this.chart = am4core.create("chartdiv", am4charts.XYChart);
         
@@ -44,10 +44,11 @@ class Historian2 extends Component {
         var categoryAxis = this.chart.xAxes.push(new am4charts.CategoryAxis());
         categoryAxis.dataFields.category = "category";
         categoryAxis.renderer.grid.template.location = 0;
-        categoryAxis.renderer.minGridDistance = 30;
+        categoryAxis.renderer.minGridDistance = 80;
         categoryAxis.renderer.grid.template.location = 0.5;
         categoryAxis.startLocation = 0.3;
         categoryAxis.endLocation = 0.7;
+        categoryAxis.maxSeries = 2;
 
         var valueAxis = this.chart.yAxes.push(new am4charts.ValueAxis());
 
@@ -56,7 +57,7 @@ class Historian2 extends Component {
         series.strokeWidth = 3;
         series.dataFields.valueY = "value";
         series.dataFields.categoryX = "category";
-        series.tooltipText = "{value}";
+        series.tooltipText = "{category} : {value}";
 
 
         this.chart.cursor = new am4charts.XYCursor();

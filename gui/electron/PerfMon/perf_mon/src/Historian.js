@@ -98,13 +98,13 @@ class Historian extends Component {
             console.log("Received historian-response-all");
             console.log(arg);
 
-            this.y_data = [];
-            this.x_data = [];
+            this.state.y_data = [];
+            this.state.x_data = [];
 
             for(var data_point of arg)
             {
-                this.x_data.push(this.get_time_string_from_epoch(data_point.timestamp));
-                this.y_data.push(data_point.value);
+                this.state.x_data.push(this.get_time_string_from_epoch(data_point.timestamp));
+                this.state.y_data.push(data_point.value);
             }
 
             this.setState(prevState => ({}));
@@ -153,9 +153,10 @@ class Historian extends Component {
             this.state.current_source = this.state.current_source.slice(0, source_index+1); // End index is non-inclusive so add 1
             if(!is_final_field)
                 this.state.selector_refs[source_index + 1].current.selectedIndex = 0; // Reset the god damn selection, as long as its not the last one
-            this.state.chart_data.labels = []; // Reset the god damn chart data and title
-            this.state.chart_data.datasets[0].data = [];
-            this.state.chart_data.datasets[0].label = "";
+            // Reset the god damn chart data and title
+            this.state.x_data = [];
+            this.state.y_data = [];
+            this.setState(prevState => ({}));
 
         }
 
@@ -230,7 +231,7 @@ class Historian extends Component {
         return (
             <div>
                 {this.build_selectors()}
-                <Historian2 x_data={this.x_data} y_data={this.y_data} />
+                <Historian2 x_data={this.state.x_data} y_data={this.state.y_data} />
             </div>
         );
     }
