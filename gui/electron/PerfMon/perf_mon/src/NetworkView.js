@@ -138,7 +138,8 @@ class NetworkView extends Component
             let index = 0;
             for(var key of Object.keys(nic))
             {
-                if(key != "NIC")
+                // Skip if key is NIC or key is max_speed_bytes and that value is -1
+                if (!(key == "NIC" || (key == "max_speed_bytes" && nic.max_speed_bytes == -1))) // Filter out the sentinel max speed bytes value 
                 {
                     data_labels.push(key);
                     data_points.push(nic[key]);
@@ -161,11 +162,25 @@ class NetworkView extends Component
 
         }
 
+        let containers = [];
+        for(var i = 0; i < nic_rates_graphs.length; i++)
+        {
+            
+            containers.push(
+                <div className="container">
+                    {nic_rates_graphs[i]}
+                    {++i < nic_rates_graphs.length ? (nic_rates_graphs[i]) : (null)}
+                </div>
+            );
+                    
+        }
+
         return (
             <>
-                <div className="container">
-                    {nic_rates_graphs}
-                </div>
+                {/* <div className="container"> */}
+                    {/* {nic_rates_graphs} */}
+                    {containers}
+                {/* </div> */}
                 <StevesTable table_data={table_data}/>
             </>
         );
