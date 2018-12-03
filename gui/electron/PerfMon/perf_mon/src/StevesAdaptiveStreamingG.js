@@ -50,7 +50,7 @@ class StevesAdaptiveStreamingG extends Component {
         }
     }
     render() {
-        const {data_points, data_labels, x_index, max_data_points, data_label_colors, title} = this.props;
+        const { data_points, data_labels, x_index, max_data_points, data_label_colors, title, disable_aspect} = this.props;
 
         while(data_points.length > this.data.datasets.length)
         {
@@ -98,12 +98,12 @@ class StevesAdaptiveStreamingG extends Component {
             this.data.labels.shift();
         }
 
-        // Since we only receive one data point at a time, only need to pop one element from front
-        // if(this.data_points.length > max_data_points)
-        // {
-        //     this.data_points.shift();
-        //     this.labels.shift();
-        // }
+        if (disable_aspect == true)
+            this.data.options.maintainAspectRatio = false;
+        else
+            this.data.options.maintainAspectRatio = true;
+
+
         return(
             <Line data={this.data} options={this.data.options} type={type} redraw={true}/>
         );

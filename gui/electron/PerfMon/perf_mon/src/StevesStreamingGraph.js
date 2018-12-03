@@ -67,10 +67,15 @@ class StevesStreamingGraph extends Component {
         }
     }
     render() {
-        const {data_point, label, max_data_points, title} = this.props;
+        const {data_point, label, max_data_points, title, disable_aspect} = this.props;
         this.data_points.push(data_point);
         this.labels.push(label);
         this.data.datasets[0].label = title;
+
+        if (disable_aspect == true)
+            options.maintainAspectRatio = false;
+        else
+            options.maintainAspectRatio = true;
 
         // Since we only receive one data point at a time, only need to pop one element from front
         if(this.data_points.length > max_data_points)
@@ -78,6 +83,7 @@ class StevesStreamingGraph extends Component {
             this.data_points.shift();
             this.labels.shift();
         }
+
         //<Line data={this.data} options={options} width={600} height={250} type={type} redraw={true}/>
         return(
             <Line data={this.data} options={options} type={type} redraw={true}/>

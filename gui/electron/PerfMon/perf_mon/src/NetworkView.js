@@ -141,15 +141,9 @@ class NetworkView extends Component
 
         // Just generate one nic graph here
         let nic_rates_graph = null;
-        console.log("FUCK1");
         if(this.state.selected_nic_metrics != null)
         {
-            console.log("FUCK2");
             let nic = this.net_nics_rates[this.state.selected_nic_metrics];
-
-            console.log(this.state.selected_nic_metrics);
-            console.log(table_data);
-
             let data_points = [];
             let data_labels = [];
             let label_colors = [];
@@ -157,7 +151,7 @@ class NetworkView extends Component
             for(var key of Object.keys(nic))
             {
                 // Skip if key is NIC or key is max_speed_bytes and that value is -1
-                if (!(key == "NIC" || (key == "max_speed_MBytes" && nic.max_speed_bytes == -1))) // Filter out the sentinel max speed bytes value 
+                if (!(key == "NIC" || (key == "max_speed_MBytes" && nic.max_speed_MBytes == -1))) // Filter out the sentinel max speed bytes value 
                 {
                     data_labels.push(key);
                     data_points.push(nic[key]);
@@ -166,14 +160,17 @@ class NetworkView extends Component
                 index++;
             }
 
+            // Notice the stupid fucking 'key' atribute, when this changes, the underlying components will be completely 
+            // thrown away, not repurposed. Fuckin React black magic getting in the way...
             nic_rates_graph =
-                <div className="container">
+                <div className="container" key={nic.NIC}> 
                     <StevesAdaptiveStreamingG 
-                    title={nic.NIC}     
+                    // title={nic.NIC}     
                     data_points={data_points} 
                     data_labels={data_labels} 
                     data_label_colors={label_colors}
                     x_index={this.timestamp}
+                    disable_aspect={true}
                     max_data_points={5}/>
                 </div>
         }
