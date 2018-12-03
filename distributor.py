@@ -60,10 +60,10 @@ class Distiller:
             "username",
             "comm",
             "priority",
-            "running_time",
+            "running_time_secs",
             "virtual_mem_MB",
-            "utime",
-            "stime"
+            "utime_secs",
+            "stime_secs"
         ] # With pid as the primary key
 
         procs = dictify_procs(get_all_complete_procs())

@@ -32,9 +32,9 @@ def get_procs_from_inode(inode, proc_dict):
 
     return procs
 
-# utime and stime are in clock ticks, running time 
+# utime_secs and stime are in clock ticks, running time 
 def get_proc_stat(pid):
-    keys = ("pid", "comm", "state", "ppid", "pgrp", "session", "tty_nr", "tpgid", "flags", "minflt", "cminflt", "majflt", "cmajflt", "utime", "stime", "cutime", "cstime", "priority", "nice", "num_threads", "itrealvalue", "starttime", "vsize", "rss", "rsslim", "startcode", "endcode", "startstack", "kstkesp", "kstkeip", "signal", "blocked", "sigignore", "sigcatch", "wchan", "nswap", "cnswap", "exit_signal", "processor", "rt_priority", "policy", "delayacct_blkio_ticks", "guest_time", "cguest_time", "start_data", "end_data", "start_brk", "arg_start", "arg_end", "env_start", "env_end", "exit_code")
+    keys = ("pid", "comm", "state", "ppid", "pgrp", "session", "tty_nr", "tpgid", "flags", "minflt", "cminflt", "majflt", "cmajflt", "utime_secs", "stime_secs", "cutime", "cstime", "priority", "nice", "num_threads", "itrealvalue", "starttime", "vsize", "rss", "rsslim", "startcode", "endcode", "startstack", "kstkesp", "kstkeip", "signal", "blocked", "sigignore", "sigcatch", "wchan", "nswap", "cnswap", "exit_signal", "processor", "rt_priority", "policy", "delayacct_blkio_ticks", "guest_time", "cguest_time", "start_data", "end_data", "start_brk", "arg_start", "arg_end", "env_start", "env_end", "exit_code")
 
     path = "/proc/" + pid + "/stat"
 
@@ -52,17 +52,23 @@ def get_proc_stat(pid):
     
     assert len(keys) == len(final)
 
-    return dict(zip(keys, final))
+    ret_dict = dict(zip(keys, final))
+
+    # These are originally in ticks, have to convert to secs, device by HZ
+    ret_dict["utime_secs"] = float(ret_dict["utime_secs"]) / 100
+    ret_dict["stime_secs"] = float(ret_dict["stime_secs"]) / 100
+
+    return ret_dict
 
 def get_proc_complete(pid):
-    custom_keys = ("username", "utilization_percent_total", "socket_inodes", "virtual_mem_MB", "physical_mem_MB", "running_time") # socket_inodes being an array
+    custom_keys = ("username", "utilization_percent_total", "socket_inodes", "virtual_mem_MB", "physical_mem_MB", "running_time_secs") # socket_inodes being an array
 
     proc_stat = get_proc_stat(pid)
     if proc_stat == None:
         return None
     # Uptime clock is in seconds, start time is in ticks. We assume here that HZ is defined as 100
-    running_time = get_uptime_clocks()["uptime"] - ( float(proc_stat["starttime"]) / 100 )
-    proc_stat["running_time"] = running_time
+    running_time_secs = get_uptime_clocks()["uptime"] - ( float(proc_stat["starttime"]) / 100 )
+    proc_stat["running_time_secs"] = running_time_secs
     username = get_username(get_uid_from_pid(proc_stat["pid"]))
     utilization = calc_proc_utilization_overall_percent(proc_stat)
     socket_inodes = get_proc_socket_inodes(pid)
@@ -83,25 +89,24 @@ def get_proc_complete(pid):
 
 
 
-# utime and stime are in ticks, running_time is calculated by me and is in seconds. Have to account for this
 def calc_proc_utilization_overall_percent(proc_dict):
-    user_time = proc_dict["utime"]
-    system_time = proc_dict["stime"]
-    total_time = proc_dict["running_time"]
+    user_time = proc_dict["utime_secs"]
+    system_time = proc_dict["stime_secs"]
+    total_time = proc_dict["running_time_secs"]
 
     return (float(user_time + system_time) / 100) / total_time
 
 def calc_proc_utilization_interval_percent(prev, current):
     def _calc_time_busy(d):
-        return d["utime"] + d["stime"]
+        return d["utime_secs"] + d["stime_secs"]
 
     def _calc_total_time(d):
-        return d["running_time"]
+        return d["running_time_secs"]
 
     busy_delta = _calc_time_busy(current) - _calc_time_busy(prev)
     total_delta = _calc_total_time(current) - _calc_total_time(prev)
 
-    return (float(busy_delta) / 100) /total_delta
+    return float(busy_delta) /total_delta
 
 def dictify_procs(procs):
     d = {}
