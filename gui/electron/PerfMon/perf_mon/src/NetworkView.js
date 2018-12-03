@@ -26,7 +26,8 @@ class NetworkView extends Component
             Nic_Metrics: {active: true},
             TCP_Metrics: {active: false},
             UDP_Metrics: {active: false}
-        }
+        },
+        selected_nic_metrics: null
     }
     // Will return only elements who's properties contain the filter text
     // Only works with non-nested arrays
@@ -118,6 +119,14 @@ class NetworkView extends Component
     // x_index={reads_writes_x_index}
     // max_data_points={5}/>
 
+    nic_selection_callback(event)
+    {
+        let target_nic = event.target.value;
+        this.setState(prevState => ({
+            selected_nic_metrics: target_nic
+        }));
+    }
+
     build_nic_page()
     {
         if(!this.state.selections.Nic_Metrics.active || this.net_nics_rates == null)
@@ -129,9 +138,18 @@ class NetworkView extends Component
 
         let nic_rates = this.convert_dict_to_array(this.net_nics_rates, "NIC");
         console.log(nic_rates);
-        let nic_rates_graphs = [];
-        for(var nic of nic_rates)
+
+        // Just generate one nic graph here
+        let nic_rates_graph = null;
+        console.log("FUCK1");
+        if(this.state.selected_nic_metrics != null)
         {
+            console.log("FUCK2");
+            let nic = this.net_nics_rates[this.state.selected_nic_metrics];
+
+            console.log(this.state.selected_nic_metrics);
+            console.log(table_data);
+
             let data_points = [];
             let data_labels = [];
             let label_colors = [];
@@ -147,8 +165,8 @@ class NetworkView extends Component
                 }
                 index++;
             }
-            console.log(nic.NIC);
-            nic_rates_graphs.push(
+
+            nic_rates_graph =
                 <div className="flex-grower">
                     <StevesAdaptiveStreamingG 
                     title={nic.NIC}     
@@ -158,29 +176,23 @@ class NetworkView extends Component
                     x_index={this.timestamp}
                     max_data_points={5}/>
                 </div>
-            );
-
         }
 
-        let containers = [];
-        for(var i = 0; i < nic_rates_graphs.length; i++)
+        let nics_for_selection = [];
+        for (var nic of nic_rates)
         {
-            
-            containers.push(
-                <div className="container">
-                    {nic_rates_graphs[i]}
-                    {++i < nic_rates_graphs.length ? (nic_rates_graphs[i]) : (null)}
-                </div>
-            );
-                    
+            nics_for_selection.push(nic.NIC);
         }
 
         return (
             <>
-                {/* <div className="container"> */}
-                    {/* {nic_rates_graphs} */}
-                    {containers}
-                {/* </div> */}
+                <select onChange={this.nic_selection_callback.bind(this)}>
+                    <option value="" disabled selected>Select NIC for graph</option>
+                    {nics_for_selection.map(function (nic_name) {
+                        return <option value={nic_name}>{nic_name}</option>
+                    })}
+                </select>
+                {nic_rates_graph}
                 <StevesTable table_data={table_data}/>
             </>
         );
