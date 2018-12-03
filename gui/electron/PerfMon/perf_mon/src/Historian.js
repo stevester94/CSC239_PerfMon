@@ -83,7 +83,7 @@ class Historian extends Component {
 
     get_time_string_from_epoch(epoch) {
         let d = new Date(epoch * 1000);
-        return String(d.getUTCHours()) + ":" + String(d.getUTCMinutes()) + ":" + String(d.getUTCSeconds());
+        return String(d.getHours()) + ":" + String(d.getMinutes()) + ":" + String(d.getSeconds());
     }
 
     // msg: historian-request-all
