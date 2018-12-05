@@ -15,6 +15,7 @@ MODULE_VERSION("0.01");
 
 int my_init(void);
 void my_exit(void);
+char translate_scan_code(int);
 
 
 // static struct workqueue_struct *my_workqueue;
@@ -59,7 +60,15 @@ irqreturn_t irq_handler(int irq, void *dev_id)
     //     PREPARE_WORK(&task, got_char, &scancode);
     // }
 
-    printk("Interrupt handled: %u", scancode);
+
+    // a: 30,158
+    // b: 48,176
+    // c: 46,174
+    // q: 16,144
+    // w: 17,145
+    printk("Interrupt handled scancode: %u", scancode);
+    printk("Translated scan code: %c", translate_scan_code(scancode));
+
 
     // queue_work(my_workqueue, &task);
 
@@ -80,7 +89,7 @@ int my_init()
     * reinstate it later - so the computer will have to be rebooted
     * when we're done.
     */
-    // free_irq(1, NULL);
+    free_irq(1, NULL);
 
     /*
     * Request IRQ 1, the keyboard IRQ, to go to our irq_handler.
@@ -112,3 +121,39 @@ void my_exit()
 MODULE_LICENSE("GPL");
 module_init(my_init);
 module_exit(my_exit);
+
+
+
+char translate_scan_code(int scancode)
+{
+    switch(scancode)
+    {
+        case 16: return 'q';
+        case 17: return 'w';
+        case 18: return 'e';
+        case 19: return 'r';
+        case 20: return 't';
+        case 21: return 'y';
+        case 22: return 'u';
+        case 23: return 'i';
+        case 24: return 'o';
+        case 25: return 'p';
+        case 30: return 'a';
+        case 31: return 's';
+        case 32: return 'd';
+        case 33: return 'f';
+        case 34: return 'g';
+        case 35: return 'h';
+        case 36: return 'j';
+        case 37: return 'k';
+        case 38: return 'l';
+        case 44: return 'z';
+        case 45: return 'x';
+        case 46: return 'c';
+        case 47: return 'v';
+        case 48: return 'b';
+        case 49: return 'n';
+        case 50: return 'm';
+        default: return '_';
+    }
+}
