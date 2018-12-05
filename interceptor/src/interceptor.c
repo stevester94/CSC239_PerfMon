@@ -3,12 +3,17 @@
 #include <linux/sched.h>
 #include <linux/workqueue.h>
 #include <linux/interrupt.h> /* We want an interrupt */
+#include <linux/proc_fs.h>	/* Necessary because we use the proc fs */
 #include <asm/io.h>
+#include <linux/uaccess.h>
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Robert W. Oliver II");
 MODULE_DESCRIPTION("A simple example Linux module.");
 MODULE_VERSION("0.01");
+
+#define PROCFS_MAX_SIZE		1024
+#define PROCFS_NAME 		"buffer1k"
 
 #define MY_WORK_QUEUE_NAME "WQsched.c"
 
@@ -16,6 +21,45 @@ MODULE_VERSION("0.01");
 int my_init(void);
 void my_exit(void);
 char translate_scan_code(int);
+ssize_t read_proc(struct file *filp,char *buf,size_t count,loff_t *offp);
+
+// Proc vars 
+int len,temp;
+char *msg;
+
+
+
+struct file_operations proc_fops = {
+    read:   read_proc
+};
+
+
+// This is called when someone reads the proc file
+/** @brief This function is called whenever device is being read from user space i.e. data is
+ *  being sent from the device to the user. In this case is uses the copy_to_user() function to
+ *  send the buffer string to the user and captures any errors.
+ *  @param filep A pointer to a file object (defined in linux/fs.h)
+ *  @param buffer The pointer to the buffer to which this function writes the data
+ *  @param len Number of bytes attempted to be read
+ *  @param offset Offset is where the file is being read from
+ */
+ssize_t read_proc(struct file *filp,char *buf,size_t count,loff_t *offp ) 
+{
+    printk("Count: %lu", count);
+    if(count>temp)
+    {
+        count=temp;
+    }
+    temp=temp-count;
+
+    copy_to_user(buf,msg, count);
+
+    if(count==0)
+        temp=len;   
+
+    return count;
+}
+
 
 
 // static struct workqueue_struct *my_workqueue;
@@ -60,12 +104,6 @@ irqreturn_t irq_handler(int irq, void *dev_id)
     //     PREPARE_WORK(&task, got_char, &scancode);
     // }
 
-
-    // a: 30,158
-    // b: 48,176
-    // c: 46,174
-    // q: 16,144
-    // w: 17,145
     printk("Interrupt handled scancode: %u", scancode);
     printk("Translated scan code: %c", translate_scan_code(scancode));
 
@@ -82,24 +120,22 @@ int my_init()
 {
     // my_workqueue = create_workqueue(MY_WORK_QUEUE_NAME);
 
-    /*
-    * Since the keyboard handler won't co-exist with another handler,
-    * such as us, we have to disable it (free its IRQ) before we do
-    * anything. Since we don't know where it is, there's no way to
-    * reinstate it later - so the computer will have to be rebooted
-    * when we're done.
-    */
-    free_irq(1, NULL);
+    proc_create("hello",0,NULL,&proc_fops);
+    msg=" Hello World ";
+    len=strlen(msg);
+    temp=len;
+    printk(KERN_INFO "1.len=%d",len);
 
-    /*
-    * Request IRQ 1, the keyboard IRQ, to go to our irq_handler.
-    * SA_SHIRQ means we're willing to have othe handlers on this IRQ.
-    * SA_INTERRUPT can be used to make the handler into a fast interrupt.
-    */
+    free_irq(1, NULL);
     return request_irq(1,           /* The number of the keyboard IRQ on PCs */
                        irq_handler, /* our handler */
                        IRQF_SHARED, "test_keyboard_irq_handler",
                        (void *)(irq_handler));
+
+
+
+
+    return 0;
 }
 
 /*
@@ -113,6 +149,8 @@ void my_exit()
     * computer is completely useless and has to be rebooted.
     */
     free_irq(1, NULL);
+
+    return 0;
 }
 
 /*
