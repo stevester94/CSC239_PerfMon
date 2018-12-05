@@ -315,27 +315,23 @@ class NewApp extends Component {
       // Data table
       let table = <StevesTable table_data={table_data}/>;
 
-      let user_busyness = {}
-      let total_mem_bytes = 0;
-      let total_interval_usage  = 0;
+      // let user_busyness = {}
+      let total_mem_MB = 0;
       for(var process of table_data)
       {
-        total_mem_bytes += process.physical_mem_KBytes;
-        total_interval_usage += process.interval_utilization;
+        total_mem_MB += process.physical_mem_MB;
 
-        if(!(process.username in user_busyness))
-        {
-          user_busyness[process.username] = 0.0;
-        }
-        console.log(process.interval_utilization);
-        user_busyness[process.username] += process.interval_utilization;
+        // if(!(process.username in user_busyness))
+        // {
+        //   user_busyness[process.username] = 0.0;
+        // }
+        // user_busyness[process.username] += process.interval_utilization;
       }
 
       let details = [];
-      let busiest_user = Object.keys(user_busyness).reduce(function(a, b){ return user_busyness[a] > user_busyness[b] ? a : b });
-      details.push("Busiest User: " + busiest_user);
-      details.push("Average physical mem usage: " + String(total_mem_bytes /table_data.length    ));
-      details.push("Average interval usage: " + String(total_interval_usage/table_data.length    ));
+      // let busiest_user = Object.keys(user_busyness).reduce(function(a, b){ return user_busyness[a] > user_busyness[b] ? a : b });
+      // details.push("Busiest User: " + busiest_user);
+      details.push("Average physical mem usage MB: " + String(total_mem_MB /table_data.length    ));
 
       return (
         <>
@@ -422,9 +418,9 @@ class NewApp extends Component {
     {
 
       // Mem usage pie chart
-      let mem_labels = ["used", "free"];
-      let mem_data = [this.state.system.total_kbytes - this.state.system.free_kbytes, this.state.system.free_kbytes];
-      let mem_title = "Memory usage";
+      let mem_labels = ["MB_used", "MB_free"];
+      let mem_data = [this.state.system.physical_mem_total_MB - this.state.system.physical_mem_free_MB, this.state.system.physical_mem_free_MB];
+      let mem_title = "Physical Memory usage";
 
       // context switches per second graph
       let context_label = this.state.time_of_last_data;

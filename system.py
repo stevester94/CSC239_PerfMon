@@ -85,7 +85,7 @@ def get_context_switches():
 
 
 def get_meminfo():
-    keys = ("free_kbytes", "total_kbytes", "used_percent")
+    keys = ("physical_mem_free_MB", "physical_mem_total_MB", "physical_mem_used_percent")
     f = open("/proc/meminfo")
 
     total = get_first_matching_line(f, "MemTotal")
@@ -101,6 +101,10 @@ def get_meminfo():
         raise ValueException
 
     d = dict(zip(keys, (free,total,used_percent)))
+
+    # Originally in KB
+    d["physical_mem_free_MB"] = float(d["physical_mem_free_MB"]) / 1024
+    d["physical_mem_total_MB"] = float(d["physical_mem_total_MB"]) / 1024
     
     f.close()
     return d

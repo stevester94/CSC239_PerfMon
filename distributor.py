@@ -143,9 +143,9 @@ class Distiller:
             "clock_speed_MHz",
             "virtual_address_size_GB",
             "physical_address_size_GB",
-            'free_kbytes',
-            'total_kbytes',
-            'used_percent',
+            'physical_mem_free_MB',
+            'physical_mem_total_MB',
+            'physical_mem_used_percent',
             "context_switches",
             "interrupts",
             "uptime_secs",
@@ -617,7 +617,7 @@ def distill_network():
 
 
 def distributor_test():
-    distributor = Distributor(9001, 5) # port 9001, sleep time
+    distributor = Distributor(9001, 1) # port 9001, sleep time
 
     distributor.run()
 

@@ -16,7 +16,7 @@ class StevesTable extends PureComponent {
       {
         column_array.push({
           Header: key,
-          accessor: key
+          accessor: key,
         });
       }
       return column_array;
