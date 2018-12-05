@@ -38,7 +38,7 @@ static void got_char(void *scancode)
 * information from the keyboard and then puts the non time critical
 * part into the work queue. This will be run when the kernel considers it safe.
 */
-irqreturn_t irq_handler(int irq, void *dev_id, struct pt_regs *regs)
+irqreturn_t irq_handler(int irq, void *dev_id)
 {
     /*
     * This variables are static because they need to be
@@ -55,14 +55,16 @@ irqreturn_t irq_handler(int irq, void *dev_id, struct pt_regs *regs)
     status = inb(0x64);
     scancode = inb(0x60);
 
-    if (initialised == 0) {
-        INIT_WORK(&task, got_char, &scancode);
-        initialised = 1;
-    } else {
-        PREPARE_WORK(&task, got_char, &scancode);
-    }
+    // if (initialised == 0) {
+    //     INIT_WORK(&task, got_char, &scancode);
+    //     initialised = 1;
+    // } else {
+    //     PREPARE_WORK(&task, got_char, &scancode);
+    // }
 
-    queue_work(my_workqueue, &task);
+    printk("Interrupt handled: %u", scancode);
+
+    // queue_work(my_workqueue, &task);
 
     return IRQ_HANDLED;
 }
@@ -88,10 +90,10 @@ int init_module()
     * SA_SHIRQ means we're willing to have othe handlers on this IRQ.
     * SA_INTERRUPT can be used to make the handler into a fast interrupt.
     */
-    return request_irq(1, /* The number of the keyboard IRQ on PCs */
-        irq_handler, /* our handler */
-        SA_SHIRQ, "test_keyboard_irq_handler",
-        (void *)(irq_handler));
+    return request_irq(1,           /* The number of the keyboard IRQ on PCs */
+                       irq_handler, /* our handler */
+                       IRQF_SHARED, "test_keyboard_irq_handler",
+                       (void *)(irq_handler));
 }
 
 /*
