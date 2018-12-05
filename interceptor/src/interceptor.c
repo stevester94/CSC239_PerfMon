@@ -12,6 +12,11 @@ MODULE_VERSION("0.01");
 
 #define MY_WORK_QUEUE_NAME "WQsched.c"
 
+
+int my_init(void);
+void my_exit(void);
+
+
 // static struct workqueue_struct *my_workqueue;
 
 /*
@@ -64,7 +69,7 @@ irqreturn_t irq_handler(int irq, void *dev_id)
 /*
 * Initialize the module - register the IRQ handler
 */
-int __init()
+int my_init()
 {
     // my_workqueue = create_workqueue(MY_WORK_QUEUE_NAME);
 
@@ -75,7 +80,7 @@ int __init()
     * reinstate it later - so the computer will have to be rebooted
     * when we're done.
     */
-    free_irq(1, NULL);
+    // free_irq(1, NULL);
 
     /*
     * Request IRQ 1, the keyboard IRQ, to go to our irq_handler.
@@ -91,7 +96,7 @@ int __init()
 /*
 * Cleanup
 */
-void __exit()
+void my_exit()
 {
     /*
     * This is only here for completeness. It's totally irrelevant, since
@@ -105,5 +110,5 @@ void __exit()
 * some work_queue related functions are just available to GPL licensed Modules
 */
 MODULE_LICENSE("GPL");
-module_init(__init);
-module_exit(__exit);
+module_init(my_init);
+module_exit(my_exit);
