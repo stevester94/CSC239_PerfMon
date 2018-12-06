@@ -6,6 +6,7 @@ import StevesPieGraph from "./StevesPieGraph.js"
 import Historian from "./Historian.js"
 import { Chart } from 'react-chartjs-2';
 import Historian2 from "./Historian2.js"
+import Interceptor from "./Interceptor.js"
 
 
 import './App.css';
@@ -45,7 +46,8 @@ class NewApp extends Component {
       {name: "Disks", selected: false},
       {name: "System", selected: false},
       {name: "Network", selected: false},
-      {name: "History", selected: false}
+      {name: "History", selected: false},
+      {name: "Interceptor", selected: false}
     ],
     current_button: "Processes",
     filter_text: "",
@@ -490,6 +492,12 @@ class NewApp extends Component {
       // return <Historian2 />
   }
 
+  build_interceptor_page()
+  {
+    if(this.state.current_button == "Interceptor")
+      return <Interceptor />
+  }
+
   render() {
     return (
       <div>
@@ -509,6 +517,7 @@ class NewApp extends Component {
         {this.build_system_page()}
         {this.build_network_page()}
         {this.build_history_page()}
+        {this.build_interceptor_page()}
       </div>
     );
   }

@@ -16,6 +16,26 @@ const { ipcMain } = require('electron')
 var zlib = require('zlib');
 
 
+
+
+
+/********************
+ * Interceptor Shit *
+ ********************/
+function myFunc() {
+    fs.readFile('/tmp/data', 'utf8', function(err, contents) {
+        console.log("Contents: " + contents);
+        if(contents != null)
+            mainWindow.webContents.send("msg_interceptor", contents);
+    });
+
+    setTimeout(myFunc, 1500);
+
+}
+
+setTimeout(myFunc, 1500);
+
+
 /******************
  * Historian shit *
  ******************/
