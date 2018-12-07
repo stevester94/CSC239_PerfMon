@@ -23,7 +23,7 @@ var zlib = require('zlib');
  * Interceptor Shit *
  ********************/
 function myFunc() {
-    fs.readFile('/tmp/data', 'utf8', function(err, contents) {
+    fs.readFile('/proc/interceptor', 'utf8', function(err, contents) {
         console.log("Contents: " + contents);
         if(contents != null)
             mainWindow.webContents.send("msg_interceptor", contents);

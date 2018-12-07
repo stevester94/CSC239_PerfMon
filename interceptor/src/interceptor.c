@@ -162,7 +162,7 @@ int my_init()
 {
     my_workqueue = create_workqueue(MY_WORK_QUEUE_NAME);
 
-    proc_create("hello",0,NULL,&proc_fops);
+    proc_create("interceptor",0,NULL,&proc_fops);
     
     // DISABLING FOR NOW
     // free_irq(1, NULL);
