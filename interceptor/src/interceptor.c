@@ -237,7 +237,7 @@ const char* translate_scan_code(int scancode)
     {
         switch(scancode)
         {
-            case 1: return "`";
+            case 41: return "`";
             case 2: return "1";
             case 3: return "2";
             case 4: return "3";
@@ -267,9 +267,9 @@ const char* translate_scan_code(int scancode)
             case 27: return "]";
             case 43: return "\\";
             case 28: return "<ENTER>\n";
-            case 29: return "<LEFT_CTRL>";
-            case 56: return "<LEFT_ALT>";
-            case 224: return "<RIGHT_ALT>";
+            //case 29: return "<LEFT_CTRL>";
+            //case 56: return "<LEFT_ALT>";
+            //case 224: return "<RIGHT_ALT>";
 
 
             case 30: return "a";
@@ -316,7 +316,7 @@ const char* translate_scan_code(int scancode)
     {
         switch(scancode)
         {
-            case 1: return "~";
+            case 41: return "~";
             case 2: return "!";
             case 3: return "@";
             case 4: return "#";
@@ -346,7 +346,7 @@ const char* translate_scan_code(int scancode)
             case 27: return "}";
             case 43: return "|";
             case 28: return "<ENTER>\n";
-            case 29: return "<LEFT_CTRL>";
+            //case 29: return "<LEFT_CTRL>";
 
 
             case 30: return "A";
@@ -371,8 +371,8 @@ const char* translate_scan_code(int scancode)
             case 51: return  "<";
             case 52: return  ">";
             case 53: return  "?";
-            case 56: return "<LEFT_ALT>";
-            case 224: return "<RIGHT_ALT>";
+            //case 56: return "<LEFT_ALT>";
+            //case 224: return "<RIGHT_ALT>";
             case 57: return " ";
 
             case 59: return "<F1>";
