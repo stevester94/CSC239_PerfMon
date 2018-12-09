@@ -23,7 +23,7 @@ ssize_t read_proc(struct file *filp,char *buf,size_t count,loff_t *offp);
 static void work_handler(struct work_struct *work);
 
 /*
- * Work queue shit
+ * Work queue stuff
  */
 #define MY_WORK_QUEUE_NAME "Interceptor_Queue"
 
@@ -38,7 +38,7 @@ struct interceptor_work_struct {
 
 
 /*
- * Interceptor buffer shit
+ * Interceptor buffer stuff
  */
 #define  INTERCEPTOR_BUFFER_LEN 1000
 int len,temp;
@@ -51,7 +51,7 @@ unsigned int current_buffer_size = 0;
 
 
 /*
- * /proc shit
+ * /proc stuff
  */
 struct file_operations proc_fops = {
     read:   read_proc
@@ -148,7 +148,7 @@ irqreturn_t irq_handler(int irq, void *dev_id)
 
     // Not sure if this is the best way to do this?
     struct interceptor_work_struct * interceptor_work;
-    interceptor_work = kmalloc(sizeof(struct interceptor_work_struct), GFP_KERNEL);
+    interceptor_work = kmalloc(sizeof(struct interceptor_work_struct), GFP_ATOMIC);
 
     INIT_WORK(&interceptor_work->work, work_handler);
 
